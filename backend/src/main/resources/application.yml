@@ -2,7 +2,6 @@ server:
   port: 8080
 
 selenium:
-  driver-path: "./chromedriver-win64/chromedriver.exe"
   headless: false #화면 안 보이게는 true
 
 spring:
