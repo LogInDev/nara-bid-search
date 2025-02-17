@@ -1,12 +1,21 @@
 package com.nivuskorea.procurement.controller.selenium;
 
+import com.nivuskorea.procurement.dto.BidInformationDto;
+import com.nivuskorea.procurement.entity.BidInformation;
+import com.nivuskorea.procurement.entity.Category;
+import com.nivuskorea.procurement.service.BidInformationService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.Select;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -15,6 +24,7 @@ import java.util.List;
 public class SeleniumController {
 
     private final WebDriver driver;
+    private final BidInformationService bidInformationService;
 
     @GetMapping("/run")
     public String runSelenium() {
@@ -24,14 +34,14 @@ public class SeleniumController {
 
         // [메인] - 1200 x 800
             // 메뉴 리스트 목록 선택
-            WebElement listButton = driver.findElement(By.id("mf_wfm_gnb_wfm_gnbMenu_btnSitemap"));
-            listButton.click();
+            final String menuListTagId = "mf_wfm_gnb_wfm_gnbMenu_btnSitemap";
+            clickIcon(menuListTagId);
 
             // '입찰공고목록' 선택
-            WebElement selectOn = driver.findElement(By.id("mf_wfm_gnb_wfm_gnbMenu_genMenu1_1_genMenu2_0_genMenu3_0_btnMenu3"));
-            selectOn.click();
+            final String bidListTagId = "mf_wfm_gnb_wfm_gnbMenu_genMenu1_1_genMenu2_0_genMenu3_0_btnMenu3";
+            clickIcon(bidListTagId);
 
-        // [입찰공고목록]
+            // [입찰공고목록]
             // '상세조건' 버튼 선택
             WebElement searchButton = driver.findElement(By.id("mf_wfm_container_tacBidPbancLst_contents_tab2_body_btnS0004"));
             WebElement detailButton = searchButton.findElement(By.xpath("./following-sibling::div//input[@type='button' and @value='상세조건']"));
@@ -74,18 +84,53 @@ public class SeleniumController {
             WebElement tbody = resultTable.findElement(By.tagName("tbody"));
             List<WebElement> rows = tbody.findElements(By.tagName("tr"));
 
+            List<BidInformationDto> bidList = new ArrayList<>();
+
             if (!rows.isEmpty()) {
-                for (WebElement row : rows) {
-
-                }
-                rows.stream().forEach(row -> {
+                rows.forEach(row -> {
                     String rowText = row.findElements(By.tagName("td")).get(5).getText();
+                    if (!rowText.isEmpty()) {
+                        JavascriptExecutor js = (JavascriptExecutor) driver;
+                        String result = rowText;
+                        if (rowText.contains("-")) {
+                            result = rowText.split("-")[0];
+                        }
 
-                    if (rowText.length() > 0) {
+                        String dateAll = row.findElements(By.tagName("td")).get(9).getText();
+                        final StartToEndDates dates = extractDates(dateAll);
 
-                        System.out.println("rowText = " + rowText);
+                        //  추가 요약 정보
+                        WebElement targetCell = row.findElements(By.tagName("td")).get(15); // 15번째 열 선택
+                        WebElement button = targetCell.findElement(By.tagName("button"));   // 버튼 요소 찾기
+                        WebElement div = button.findElement(By.tagName("div"));             // div 요소 찾기
+                        List<WebElement> paragraphs = div.findElements(By.tagName("p"));    // 모든 <p> 태그 가져오기
+
+                        String contractMethod = ""; // 낙찰방법
+                        String estimatedBudget = ""; // 배정예산
+
+                        for (WebElement p : paragraphs) {
+                            // JavaScriptExecutor로 텍스트 가져오기 (렌더링된 데이터)
+                            String text = (String) js.executeScript("return arguments[0].textContent;", p);
+                            if (text.startsWith("낙찰방법 :")) {
+                                contractMethod = text.replace("낙찰방법 :", "").trim();
+                            } else if (text.startsWith("배정예산 :")) {
+                                estimatedBudget = text.replace("배정예산 :", "").trim()
+                                        .replaceAll("[^0-9]", "");
+                            }
+                        }
+                        bidList.add(BidInformationDto.builder()
+                                .category(row.findElements(By.tagName("td")).get(1).getText())
+                                .bidType("입찰공고")
+                                .title(row.findElements(By.tagName("td")).get(6).getText())
+                                .institution(row.findElements(By.tagName("td")).get(8).getText())
+                                .bidNumber(result)
+                                .estimatedAmount(Long.parseLong(estimatedBudget))
+                                .announcementDate(dates.announcementDate())
+                                .deadline(dates.deadline())
+                                .contractMethod(contractMethod).build());
                     }
                 });
+                bidInformationService.saveAllBids(bidList);
             }
 
             return "Selenium 실행 완료";
@@ -93,6 +138,30 @@ public class SeleniumController {
         } catch (Exception e) {
             return "Selenium 실행 중 오류 발생: " + e.getMessage();
         }
+    }
+
+    /**
+     * 클릭할 Tag Id를 특정해서 클릭
+     * @param itemTagId 클릭할 Tag Id
+     */
+    private void clickIcon(String itemTagId) {
+        WebElement selectOn = driver.findElement(By.id(itemTagId));
+        selectOn.click();
+    }
+
+    /**
+     * 일시를 나타내는 2개의 데이터가 ()로 구분되어 같이 있는 경우 분리하는 기능
+     * @param dateAll LocalDateTime1(LocalDateTmie2
+     * @return LocalDateTime1, LocalDateTime2
+     */
+    private StartToEndDates extractDates(String dateAll) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+        String date1 = dateAll.split("\\(")[0].trim();
+        String date2 = dateAll.split("\\(")[1].split("\\)")[0].trim();
+        LocalDateTime announcementDate = LocalDateTime.parse(date1, formatter);
+        LocalDateTime deadline = LocalDateTime.parse(date2, formatter);
+
+        return new StartToEndDates(announcementDate, deadline);
     }
 
     /**
@@ -121,4 +190,11 @@ public class SeleniumController {
         driver.quit();
         return "Selenium 종료 완료";
     }
+
+    /**
+     * extractDates()의 분리된 결과를 담는 record
+     * @param announcementDate 첫번째 LocalDateTime
+     * @param deadline 두번째 LocalDateTime
+     */
+    private record StartToEndDates(LocalDateTime announcementDate, LocalDateTime deadline) {}
 }
