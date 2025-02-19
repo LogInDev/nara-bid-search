@@ -44,11 +44,10 @@ public class BidInformation  extends BaseEntity{
     @JoinColumn(name = "region_id")
     private RestrictedRegion restrictedRegion;
 
-    public BidInformation(Long id) {
-        this.id = id;
+    public BidInformation() {
     }
 
-    public BidInformation(BidInformationDto dto) {
+    public BidInformation(BidInformationDto dto, DetailProduct detailProduct, RestrictedRegion restrictedRegion) {
         this.category = Category.fromString(dto.getCategory());
         this.bidType = BidType.fromString(dto.getBidType());
         this.title = dto.getTitle();
@@ -58,6 +57,8 @@ public class BidInformation  extends BaseEntity{
         this.announcementDate = dto.getAnnouncementDate();
         this.deadline = dto.getDeadline();
         this.contractMethod = dto.getContractMethod();
+        this.detailProduct = detailProduct;  // FK 엔터티 설정
+        this.restrictedRegion = restrictedRegion;  // FK 엔터티 설정
     }
 
 

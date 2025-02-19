@@ -19,7 +19,7 @@ public class RestrictedRegion extends BaseEntity{
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Category category;  // 구분
+    private BidType bidType;  // 입찰 유형
 
     @Column(nullable = false)
     private String restrictedRegion;        // 제한지역
@@ -29,5 +29,12 @@ public class RestrictedRegion extends BaseEntity{
     @OneToMany(mappedBy = "restrictedRegion")
     private List<BidInformation> bids = new ArrayList<>();
 
+    public RestrictedRegion() {
+    }
 
+    public RestrictedRegion(BidType bidType, String restrictedRegion, Boolean isUsed) {
+        this.bidType = bidType;
+        this.restrictedRegion = restrictedRegion;
+        this.isUsed = isUsed;
+    }
 }

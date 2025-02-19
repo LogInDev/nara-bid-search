@@ -19,10 +19,10 @@ public class DetailProduct extends BaseEntity{
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Category category;  // 구분
+    private BidType bidType;  // 입찰유형
 
     @Column(nullable = false)
-    private Integer itemNumber;     // 세부품명번호
+    private String itemNumber;     // 세부품명번호
 
     @Column(nullable = false)
     private String itemName;        // 세부품명
@@ -35,12 +35,10 @@ public class DetailProduct extends BaseEntity{
     public DetailProduct() {
     }
 
-    public DetailProduct(Category category, Integer itemNumber, String itemName) {
-        this.category = category;
+    public DetailProduct(BidType bidType, String itemNumber, String itemName, Boolean isUsed) {
+        this.bidType = bidType;
         this.itemNumber = itemNumber;
         this.itemName = itemName;
+        this.isUsed = isUsed;
     }
-
-
-
 }

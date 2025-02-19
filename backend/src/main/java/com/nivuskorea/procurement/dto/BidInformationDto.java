@@ -21,6 +21,9 @@ public class BidInformationDto {
     private LocalDateTime deadline;     // 마감일(의견등록마감)
     private String contractMethod;      // 계약방법
 
+    private Long productId;  // DetailProduct의 FK
+    private Long regionId;   // RestrictedRegion의 FK
+
     public static BidInformationDto fromEntity(BidInformation entity) {
         return BidInformationDto.builder()
                 .category(entity.getCategory().getDescription()) // 한글 변환
@@ -32,6 +35,8 @@ public class BidInformationDto {
                 .announcementDate(entity.getAnnouncementDate())
                 .deadline(entity.getDeadline())
                 .contractMethod(entity.getContractMethod())
+                .productId(entity.getDetailProduct() != null ? entity.getDetailProduct().getId() : null) // FK 처리
+                .regionId(entity.getRestrictedRegion() != null ? entity.getRestrictedRegion().getId() : null) // FK 처리
                 .build();
     }
 
