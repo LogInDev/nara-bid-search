@@ -3,7 +3,6 @@ package com.nivuskorea.procurement.entity;
 import com.nivuskorea.procurement.dto.BidInformationDto;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -44,10 +43,14 @@ public class BidInformation  extends BaseEntity{
     @JoinColumn(name = "region_id")
     private RestrictedRegion restrictedRegion;
 
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "contract_id")
+    private ContractType contractType;
+
     public BidInformation() {
     }
 
-    public BidInformation(BidInformationDto dto, DetailProduct detailProduct, RestrictedRegion restrictedRegion) {
+    public BidInformation(BidInformationDto dto, DetailProduct detailProduct, RestrictedRegion restrictedRegion, ContractType contractType) {
         this.category = Category.fromString(dto.getCategory());
         this.bidType = BidType.fromString(dto.getBidType());
         this.title = dto.getTitle();
@@ -59,6 +62,7 @@ public class BidInformation  extends BaseEntity{
         this.contractMethod = dto.getContractMethod();
         this.detailProduct = detailProduct;  // FK 엔터티 설정
         this.restrictedRegion = restrictedRegion;  // FK 엔터티 설정
+        this.contractType = contractType;  // FK 엔터티 설정
     }
 
 

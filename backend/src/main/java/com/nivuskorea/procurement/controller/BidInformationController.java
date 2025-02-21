@@ -1,7 +1,10 @@
 package com.nivuskorea.procurement.controller;
 
+import com.nivuskorea.procurement.dto.BidInformationDto;
 import com.nivuskorea.procurement.entity.BidInformation;
+import com.nivuskorea.procurement.repository.BidInfomationRepository;
 import com.nivuskorea.procurement.repository.BidInformationBatchRepository;
+import com.nivuskorea.procurement.service.BidInformationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,13 +21,12 @@ import java.util.List;
 @Slf4j
 public class BidInformationController {
 
-    private final BidInformationBatchRepository bidInformationRepository;
+    private final BidInformationService bidInformationService;
 
     @GetMapping("/all")
-    public List<BidInformation> getAllBids(){
-//        List<BidInformation> all = bidInformationRepository.findAll();
-//        log.info(all.toString());
-//        return all;
-        return null;
+    public List<BidInformationDto> getAllBids(){
+        List<BidInformationDto> all = bidInformationService.getActiveBids();
+//        log.info("/all 조회 결과 : {}",all.toString());
+        return all;
     }
 }

@@ -2,26 +2,27 @@ package com.nivuskorea.procurement.repository;
 
 import com.nivuskorea.procurement.entity.BidInformation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
 public class BidInformationBatchRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     private static final String UPSERT_SQL = """
         INSERT INTO procurement.bid_information (
-            category, bid_type, title, institution, bid_number, estimated_amount, announcement_date, deadline, contract_method
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT (bid_number)\s
-        DO UPDATE SET\s
+            category, bid_type, title, institution, bid_number, estimated_amount, announcement_date, deadline, contract_method, product_id, region_id, contract_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (bid_number)
+        DO UPDATE SET
             category = EXCLUDED.category,
             bid_type = EXCLUDED.bid_type,
             title = EXCLUDED.title,
@@ -29,30 +30,40 @@ public class BidInformationBatchRepository {
             estimated_amount = EXCLUDED.estimated_amount,
             announcement_date = EXCLUDED.announcement_date,
             deadline = EXCLUDED.deadline,
-            contract_method = EXCLUDED.contract_method;
-   \s""";
+            contract_method = EXCLUDED.contract_method,
+            product_id = EXCLUDED.product_id,
+            region_id = EXCLUDED.region_id,
+            contract_id = EXCLUDED.contract_id;
+    """;
 
+    @Transactional
     public void batchUpsert(List<BidInformation> bidList) {
-        jdbcTemplate.batchUpdate(UPSERT_SQL, new BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                BidInformation bid = bidList.get(i);
-                ps.setString(1, bid.getCategory().name());
-                ps.setString(2, bid.getBidType().name());
-                ps.setString(3, bid.getTitle());
-                ps.setString(4, bid.getInstitution());
-                ps.setString(5, bid.getBidNumber());
-                ps.setObject(6, bid.getEstimatedAmount());
-                ps.setObject(7, bid.getAnnouncementDate());
-                ps.setObject(8, bid.getDeadline());
-                ps.setString(9, bid.getContractMethod());
-            }
+        int batchSize = 50; // 배치 사이즈 조절 가능
+        for (int i = 0; i < bidList.size(); i++) {
+            BidInformation bid = bidList.get(i);
 
-            @Override
-            public int getBatchSize() {
-                return bidList.size();
+            Query query = entityManager.createNativeQuery(UPSERT_SQL)
+                    .setParameter(1, bid.getCategory().name())
+                    .setParameter(2, bid.getBidType().name())
+                    .setParameter(3, bid.getTitle())
+                    .setParameter(4, bid.getInstitution())
+                    .setParameter(5, bid.getBidNumber())
+                    .setParameter(6, bid.getEstimatedAmount())
+                    .setParameter(7, bid.getAnnouncementDate())
+                    .setParameter(8, bid.getDeadline())
+                    .setParameter(9, bid.getContractMethod())
+                    .setParameter(10, bid.getDetailProduct().getId())
+                    .setParameter(11, bid.getRestrictedRegion().getId())
+                    .setParameter(12, bid.getContractType().getId());
+
+            query.executeUpdate();
+
+            // 배치 처리
+            if (i % batchSize == 0) {
+                entityManager.flush();
+                entityManager.clear();
             }
-        });
+        }
     }
 
 }

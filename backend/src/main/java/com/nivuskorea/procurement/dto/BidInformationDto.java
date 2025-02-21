@@ -23,6 +23,7 @@ public class BidInformationDto {
 
     private Long productId;  // DetailProduct의 FK
     private Long regionId;   // RestrictedRegion의 FK
+    private Long contractId;   // ContractType의 FK
 
     public static BidInformationDto fromEntity(BidInformation entity) {
         return BidInformationDto.builder()
@@ -37,6 +38,7 @@ public class BidInformationDto {
                 .contractMethod(entity.getContractMethod())
                 .productId(entity.getDetailProduct() != null ? entity.getDetailProduct().getId() : null) // FK 처리
                 .regionId(entity.getRestrictedRegion() != null ? entity.getRestrictedRegion().getId() : null) // FK 처리
+                .contractId(entity.getContractType() != null ? entity.getContractType().getId() : null) // FK 처리
                 .build();
     }
 
