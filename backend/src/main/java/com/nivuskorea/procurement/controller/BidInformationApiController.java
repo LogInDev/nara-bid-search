@@ -1,12 +1,11 @@
 package com.nivuskorea.procurement.controller;
 
 import com.nivuskorea.procurement.dto.BidInformationDto;
-import com.nivuskorea.procurement.entity.ProjectSearchKeyword;
 import com.nivuskorea.procurement.service.BidInformationService;
-import com.nivuskorea.procurement.service.NaraApiService;
+import com.nivuskorea.procurement.service.NaraBidAnnApiService;
+import com.nivuskorea.procurement.service.NaraProcurementApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +21,8 @@ import java.util.List;
 public class BidInformationApiController {
 
     private final BidInformationService bidInformationService;
-    private final NaraApiService naraApiService;
+    private final NaraProcurementApiService naraProcurementApiService;
+    private final NaraBidAnnApiService naraBidAnnApiService;
 
     @GetMapping("/all")
     public List<BidInformationDto> getAllBids(){
@@ -34,8 +34,9 @@ public class BidInformationApiController {
     @GetMapping("/test")
     public String testApi(){
 
-        naraApiService.keywordApi();
-//        naraApiService.procurementApi();
+        naraBidAnnApiService.bidAnnApi();
+//        naraProcurementApiService.keywordApi();
+//        naraProcurementApiService.procurementApi();
 
         return "testApi - ok";
     }
