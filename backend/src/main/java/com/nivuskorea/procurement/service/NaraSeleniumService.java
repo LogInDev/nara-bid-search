@@ -28,7 +28,7 @@ public class NaraSeleniumService {
     private final DetailProductsService detailProductsService;
     private final RestrictedRegionService restrictedRegionService;
     private final BidInformationService bidInformationService;
-    private final ContractMethodsService contractMethodsService;
+    private final ContractTypesService contractTypesService;
 
     @Async
     public CompletableFuture<WebDriver> BidAnnouncementSearch(){
@@ -75,7 +75,7 @@ public class NaraSeleniumService {
 
             // '계약방법' 특정 - '일반경쟁' || '제한경쟁'
             final String contractMethodTagId = "mf_wfm_container_tacBidPbancLst_contents_tab2_body_sbxBidCtrtMthdCd";
-            List<ContractType> contractTypes = contractMethodsService.selectByBidType(BidType.BID_ANNOUNCEMENT);
+            List<ContractType> contractTypes = contractTypesService.selectByBidType(BidType.BID_ANNOUNCEMENT);
 
 
             // '세부품명번호' 특정 - 4111249801(프로세스제어반), 계장제어장치, 유량계

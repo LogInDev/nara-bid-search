@@ -1,10 +1,12 @@
 package com.nivuskorea.procurement.controller;
 
 import com.nivuskorea.procurement.dto.BidInformationDto;
+import com.nivuskorea.procurement.entity.ProjectSearchKeyword;
 import com.nivuskorea.procurement.service.BidInformationService;
 import com.nivuskorea.procurement.service.NaraApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +32,11 @@ public class BidInformationApiController {
     }
 
     @GetMapping("/test")
-    public void testApi(){
-        naraApiService.procurementApi();
+    public String testApi(){
+
+        naraApiService.keywordApi();
+//        naraApiService.procurementApi();
+
+        return "testApi - ok";
     }
 }

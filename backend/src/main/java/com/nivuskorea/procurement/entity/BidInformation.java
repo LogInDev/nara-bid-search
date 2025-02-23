@@ -47,9 +47,14 @@ public class BidInformation  extends BaseEntity{
     @JoinColumn(name = "contract_id")
     private ContractType contractType;
 
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "keyword_id")
+    private ProjectSearchKeyword projectSearchKeyword;
+
     public BidInformation() {
     }
 
+    // 입찰 공고 검색 결과
     public BidInformation(BidInformationDto dto, DetailProduct detailProduct, RestrictedRegion restrictedRegion, ContractType contractType) {
         this.category = Category.fromString(dto.getCategory());
         this.bidType = BidType.fromString(dto.getBidType());
@@ -65,6 +70,7 @@ public class BidInformation  extends BaseEntity{
         this.contractType = contractType;  // FK 엔터티 설정
     }
 
+    // 발주 > 사전 규격 > 물품 검색 결과
     public BidInformation(BidInformationDto dto, DetailProduct detailProduct) {
         this.category = Category.fromString(dto.getCategory());
         this.bidType = BidType.fromString(dto.getBidType());
@@ -76,6 +82,21 @@ public class BidInformation  extends BaseEntity{
         this.deadline = dto.getDeadline();
         this.contractMethod = dto.getContractMethod();
         this.detailProduct = detailProduct;  // FK 엔터티 설정
+    }
+
+    // 발주 > 사전 규격 > 일반용역, 기술용역 검색 결과
+    public BidInformation(BidInformationDto dto, DetailProduct detailProduct, ProjectSearchKeyword projectSearchKeyword) {
+        this.category = Category.fromString(dto.getCategory());
+        this.bidType = BidType.fromString(dto.getBidType());
+        this.title = dto.getTitle();
+        this.institution = dto.getInstitution();
+        this.bidNumber = dto.getBidNumber();
+        this.estimatedAmount = dto.getEstimatedAmount();
+        this.announcementDate = dto.getAnnouncementDate();
+        this.deadline = dto.getDeadline();
+        this.contractMethod = dto.getContractMethod();
+        this.detailProduct = detailProduct;  // FK 엔터티 설정
+        this.projectSearchKeyword = projectSearchKeyword;  // FK 엔터티 설정
     }
 
 

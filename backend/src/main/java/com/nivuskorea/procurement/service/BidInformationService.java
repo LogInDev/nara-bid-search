@@ -25,7 +25,7 @@ public class BidInformationService {
     private final BidInfomationRepository bidInfomationRepository;
     private final DetailProductsService detailProductsService;
     private final RestrictedRegionService restrictedRegionService;
-    private final ContractMethodsService contractMethodsService;
+    private final ContractTypesService contractTypesService;
 
     public List<BidInformationDto> getActiveBids(){
         List<BidInformation> activeBids = bidInfomationRepository.findActiveBids();
@@ -47,7 +47,7 @@ public class BidInformationService {
         bids.forEach(bid -> {
             DetailProduct detailProductById = detailProductsService.getDetailProductById(bid.getProductId());
             RestrictedRegion restrictRegionById = restrictedRegionService.getRestrictRegionById(bid.getRegionId());
-            ContractType contractTypeById = contractMethodsService.getContractMethodById(bid.getContractId());
+            ContractType contractTypeById = contractTypesService.getContractMethodById(bid.getContractId());
             bidInformationList.add(new BidInformation(bid, detailProductById, restrictRegionById, contractTypeById));
         });
         batchRepository.bidAnnBatchUpsert(bidInformationList);

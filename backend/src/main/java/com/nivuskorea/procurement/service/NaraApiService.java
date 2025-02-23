@@ -3,10 +3,7 @@ package com.nivuskorea.procurement.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nivuskorea.procurement.dto.BidInformationDto;
-import com.nivuskorea.procurement.entity.BidType;
-import com.nivuskorea.procurement.entity.ContractType;
-import com.nivuskorea.procurement.entity.DetailProduct;
-import com.nivuskorea.procurement.entity.RestrictedRegion;
+import com.nivuskorea.procurement.entity.*;
 import com.nivuskorea.procurement.factory.WebDriverFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +35,13 @@ public class NaraApiService {
 
     private final DetailProductsService detailProductsService;
     private final BidInformationService bidInformationService;
+    private final ProjectSearchKeywordsService projectSearchKeywordsService;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     HttpClient client = HttpClient.newHttpClient();
 
     /**
-     * 발주목록 > 사전규격 > 세부품목별 공고 저장 process
+     * 발주목록 > 사전규격 > 물품 > 세부품목별 공고 저장 process
      */
     public void procurementApi() {
 
@@ -51,7 +49,7 @@ public class NaraApiService {
             final String sessionId = getSessionId();
             System.out.println("새로운 JSESSIONID: " + sessionId);
 
-            List<DetailProduct> detailProducts = detailProductsService.selectByBidType(BidType.BID_ANNOUNCEMENT);
+            List<DetailProduct> detailProducts = detailProductsService.selectByBidType(BidType.PRE_STANDARD);
 
             for (DetailProduct detailProduct : detailProducts) {
                 List<String> orderPlanNoList = getOrderPlanNoList(sessionId, detailProduct.getItemNumber());
@@ -61,6 +59,12 @@ public class NaraApiService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    public void keywordApi(){
+        final List<ProjectSearchKeyword> projectSearchKeywords = projectSearchKeywordsService.selectByBidType(BidType.PRE_STANDARD);
+        System.out.println("projectSearchKeywords = " + projectSearchKeywords);
     }
 
     /**
