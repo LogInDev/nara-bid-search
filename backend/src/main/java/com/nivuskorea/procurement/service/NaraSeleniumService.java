@@ -17,12 +17,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class NaraService {
+public class NaraSeleniumService {
 
     private final WebDriverFactory webDriverFactory;
     private final DetailProductsService detailProductsService;
@@ -31,7 +31,7 @@ public class NaraService {
     private final ContractMethodsService contractMethodsService;
 
     @Async
-    public void BidAnnouncementSearch(){
+    public CompletableFuture<WebDriver> BidAnnouncementSearch(){
         WebDriver driver = webDriverFactory.createWebDriver();
         List<BidInformationDto> bidList = new ArrayList<>();
 
@@ -105,15 +105,113 @@ public class NaraService {
 
                 });
             });
-            bidInformationService.saveAllBids(bidList);
+            bidInformationService.saveBidAnnAllBids(bidList);
 
         } catch (Exception e) {
             log.error("Selenium1 실행 중 오류 발생: {}", e.getMessage());
         }
-//        finally {
-//            driver.close();
-//        }
+
+        return CompletableFuture.completedFuture(driver);
     }
+
+
+    @Async
+    public CompletableFuture<WebDriver> PreStandardSearch(){
+        log.info("새로운 Web");
+        WebDriver driver = webDriverFactory.createWebDriver();
+        List<BidInformationDto> bidList = new ArrayList<>();
+
+        try {
+            log.info("Selenium2 시작");
+            setUpMeueList(driver);
+            Thread.sleep(1000);
+
+            // '발주목록' 선택
+            final String procurementListTagId = "mf_wfm_gnb_wfm_gnbMenu_genMenu1_0_genMenu2_0_btnMenu2_span";
+            clickIcon(driver, procurementListTagId);
+            Thread.sleep(3000);
+
+            // [발주목록]
+            // '사전규격공개'
+            final String beforeOpenTagId = "mf_wfm_container_radSrchTy_input_1";
+            WebElement beforeOpen = driver.findElement(By.id(beforeOpenTagId));
+            clickIcon(driver, beforeOpenTagId);
+
+
+            // '상세조건' 버튼 선택
+            WebElement searchButton = driver.findElement(By.id("mf_wfm_container_btnIntz"));
+            WebElement detailButton = searchButton.findElement(By.xpath("./following-sibling::div//input[@type='button' and @value='상세조건']"));
+            detailButton.click();
+            Thread.sleep(2000);
+
+            // '업무구분' - '물품'
+            final String productCheckboxTagId = "mf_wfm_container_chkRqdcBsneSeCd_input_1";
+            clickIcon(driver, productCheckboxTagId);
+
+            // 출력 총 index 100
+            final String setIndexTagId = "mf_wfm_container_sbxRecordCountPerPage";
+            final String setIndex = "100";
+            setSelectOption(driver, setIndexTagId, setIndex);
+
+            // '세부품명번호' 특정 - 4111249801(프로세스제어반), 계장제어장치, 유량계
+            WebElement inputElement = driver.findElement(By.xpath("//tr[@id='mf_wfm_container_grpItem02']//input[@title='세부품명번호']"));
+            List<DetailProduct> detailProducts = detailProductsService.selectByBidType(BidType.BID_ANNOUNCEMENT);
+            inputElement.sendKeys("4111249801");
+            Thread.sleep(1000);
+
+            // '검색' 버튼 클릭
+            final String searchBtnTagId = "mf_wfm_container_btnS0001";
+            WebElement searchBtn = driver.findElement(By.id(searchBtnTagId));
+            searchBtn.sendKeys(Keys.ENTER);
+            Thread.sleep(2000);
+
+            // 검색 결과
+            WebElement resultTable = driver.findElement(By.id("mf_wfm_container_gridView1_body_table"));
+            WebElement tbody = resultTable.findElement(By.tagName("tbody"));
+            List<WebElement> rows = tbody.findElements(By.tagName("tr"));
+
+            if (!rows.isEmpty()) {
+                rows.forEach(row -> {
+                    System.out.println("row = " + row);
+                    final WebElement td = row.findElements(By.tagName("td")).get(4);
+                    System.out.println("td = " + td);
+                });
+            }
+
+
+//
+//            restrictedRegions.forEach(restrictedRegion->{
+//                final String selectOption = restrictedRegion.getRestrictedRegion();
+//                setSelectOption(driver, limitRegionTagId, selectOption);
+//
+//                contractTypes.forEach(contractType -> {
+//                    final String contractOption = contractType.getContract().getDescription();
+//                    setSelectOption(driver, contractMethodTagId, contractOption);
+//
+//                    detailProducts.forEach(detailProduct -> {
+//                        final String productNumber = detailProduct.getItemNumber();
+//                        setSearchText(driver, detailProductTagId, productNumber);
+//
+//                        try {
+//                            Thread.sleep(1000);
+//                            searchResult(driver, bidList, detailProduct, restrictedRegion, contractType);
+//                            Thread.sleep(1000);
+//                        } catch (InterruptedException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    });
+//
+//                });
+//            });
+//            bidInformationService.saveAllBids(bidList);
+
+        } catch (Exception e) {
+            log.error("Selenium2 실행 중 오류 발생: {}", e.getMessage());
+        }
+
+        return CompletableFuture.completedFuture(driver);
+    }
+
 
     /**
      * '검색' 클릭 후 검색 결과 반환
@@ -193,14 +291,38 @@ public class NaraService {
      * @throws InterruptedException 크롬 관련 예외 처리
      */
     private void setUpMeueList(WebDriver driver) throws InterruptedException {
-        driver.get("https://www.g2b.go.kr/");
-        // WebDriverWait을 사용하여 특정 요소가 로드될 때까지 기다리기 (최대 10초)
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        final String url = "https://www.g2b.go.kr/";
+        driver.get(url);
+        // WebDriverWait을 사용하여 특정 요소가 로드될 때까지 기다리기
+        final int limitSecond = 60;
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(limitSecond));
 
         final String menuListTagId = "mf_wfm_gnb_wfm_gnbMenu_btnSitemap";
-        WebElement menuElement = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.id(menuListTagId))
-        );
+        int retryCount = 0;
+        final int masRetries = 5;
+
+        boolean isLoaded = false;
+
+        do {
+            try {
+                log.info("페이지 로드 시도: {} ({}번째 시도)", url, retryCount + 1);
+                driver.get(url);
+
+                wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(menuListTagId)));
+                isLoaded = true;
+            } catch (TimeoutException e) {
+                retryCount++;
+                log.warn("요소가 {}초 동안 로드되지 않음. 재시도 중... ({} / {})", limitSecond, retryCount, masRetries);
+
+                if (retryCount >= masRetries) {
+                    log.error("최대 재시도 횟수 초과. 페이지 로드 실패: {}", url);
+                    throw e;
+                }
+            }
+        } while (!isLoaded);
+
+        log.info("페이지 로드 완료");
+        Thread.sleep(5000);
 
         // title이 "오늘 하루"로 시작하는 체크박스 찾기
         List<WebElement> checkboxes = driver.findElements(By.xpath("//input[@type='checkbox' and starts-with(@title, '오늘 하루')]"));

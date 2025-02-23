@@ -14,7 +14,7 @@ public class RestrictedRegion extends BaseEntity{
     @Id
     @Column(name = "region_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "restricted_regions_seq_gen")
-    @SequenceGenerator(name = "restricted_regions_seq_gen", sequenceName = "procurement.restricted_regions_seq", allocationSize = 50)
+    @SequenceGenerator(name = "restricted_regions_seq_gen", sequenceName = "procurement.restricted_regions_seq", allocationSize = 1)
     private Long id;
 
     @Enumerated(EnumType.STRING)

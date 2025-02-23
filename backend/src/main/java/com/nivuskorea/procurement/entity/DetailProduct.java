@@ -14,7 +14,7 @@ public class DetailProduct extends BaseEntity{
     @Id
     @Column(name = "product_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "detail_products_seq_gen")
-    @SequenceGenerator(name = "detail_products_seq_gen", sequenceName = "procurement.detail_products_seq", allocationSize = 50)
+    @SequenceGenerator(name = "detail_products_seq_gen", sequenceName = "procurement.detail_products_seq", allocationSize = 1)
     private Long id;
 
     @Enumerated(EnumType.STRING)

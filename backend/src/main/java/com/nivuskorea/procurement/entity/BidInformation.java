@@ -16,7 +16,7 @@ public class BidInformation  extends BaseEntity{
     @Id
     @Column(name = "info_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bid_information_seq_gen")
-    @SequenceGenerator(name = "bid_information_seq_gen", sequenceName = "procurement.bid_information_seq", allocationSize = 50)
+    @SequenceGenerator(name = "bid_information_seq_gen", sequenceName = "procurement.bid_information_seq", allocationSize = 1)
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -63,6 +63,19 @@ public class BidInformation  extends BaseEntity{
         this.detailProduct = detailProduct;  // FK 엔터티 설정
         this.restrictedRegion = restrictedRegion;  // FK 엔터티 설정
         this.contractType = contractType;  // FK 엔터티 설정
+    }
+
+    public BidInformation(BidInformationDto dto, DetailProduct detailProduct) {
+        this.category = Category.fromString(dto.getCategory());
+        this.bidType = BidType.fromString(dto.getBidType());
+        this.title = dto.getTitle();
+        this.institution = dto.getInstitution();
+        this.bidNumber = dto.getBidNumber();
+        this.estimatedAmount = dto.getEstimatedAmount();
+        this.announcementDate = dto.getAnnouncementDate();
+        this.deadline = dto.getDeadline();
+        this.contractMethod = dto.getContractMethod();
+        this.detailProduct = detailProduct;  // FK 엔터티 설정
     }
 
 

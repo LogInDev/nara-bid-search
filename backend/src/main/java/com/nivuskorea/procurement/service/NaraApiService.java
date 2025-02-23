@@ -1,0 +1,276 @@
+package com.nivuskorea.procurement.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nivuskorea.procurement.dto.BidInformationDto;
+import com.nivuskorea.procurement.entity.BidType;
+import com.nivuskorea.procurement.entity.ContractType;
+import com.nivuskorea.procurement.entity.DetailProduct;
+import com.nivuskorea.procurement.entity.RestrictedRegion;
+import com.nivuskorea.procurement.factory.WebDriverFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
+import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class NaraApiService {
+
+    private final DetailProductsService detailProductsService;
+    private final BidInformationService bidInformationService;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    HttpClient client = HttpClient.newHttpClient();
+
+    /**
+     * 발주목록 > 사전규격 > 세부품목별 공고 저장 process
+     */
+    public void procurementApi() {
+
+        try {
+            final String sessionId = getSessionId();
+            System.out.println("새로운 JSESSIONID: " + sessionId);
+
+            List<DetailProduct> detailProducts = detailProductsService.selectByBidType(BidType.BID_ANNOUNCEMENT);
+
+            for (DetailProduct detailProduct : detailProducts) {
+                List<String> orderPlanNoList = getOrderPlanNoList(sessionId, detailProduct.getItemNumber());
+                processOrderPlans(sessionId, orderPlanNoList, detailProduct);
+            };
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 공고 번호별 검색 요청 및 응답 결과 Entity 리스트로 생성
+     * @param sessionId 요청 세션 id
+     * @param orderPlanNoList 공고 번호 리스트
+     * @param detailProduct 세부품목객체
+     */
+    private void processOrderPlans(String sessionId, List<String> orderPlanNoList, DetailProduct detailProduct) {
+        List<BidInformationDto> bidList = new ArrayList<>();
+        for (String orderPlanNo : orderPlanNoList) {
+            try {
+                HttpResponse<String> response = getDetailResultHttpResponse(sessionId, orderPlanNo);
+                parseResponse(response.body(), bidList, detailProduct);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("bidList = " + bidList);
+        bidInformationService.savePreStdAllBids(bidList);
+
+    }
+
+    /**
+     * 공고 상세 정보인 응답 객체를 Entity에 맞게 변환하여 Entity 리스트에 추가
+     * @param responseBody 공고 상세 정보 응답 객체
+     * @param bidList Entity 리스트
+     * @param detailProduct 세부 품목 객체
+     */
+    private void parseResponse(String responseBody, List<BidInformationDto> bidList, DetailProduct detailProduct) throws Exception {
+        JsonNode rootNode = objectMapper.readTree(responseBody);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+
+        if (rootNode.has("dlBfSpecM")) {
+            JsonNode item = rootNode.get("dlBfSpecM");
+            bidList.add(BidInformationDto.builder()
+                    .category("물품") // item.get("prcmBsneSeCdNm").asText("")
+                    .bidType("사전규격")
+                    .title(StringEscapeUtils.unescapeHtml4(item.get("bfSpecNm").asText("")))
+                    .institution(StringEscapeUtils.unescapeHtml4(item.get("dmstUntyGrpNm").asText("")))
+                    .bidNumber(StringEscapeUtils.unescapeHtml4(item.get("bfSpecRegNo").asText("")))
+                    .estimatedAmount(item.get("alotBgtPrspAmt").asLong(0L))
+                    .announcementDate(parseDate(item.path("specRlsDt"), formatter))
+                    .deadline(parseDate(item.path("opnnRegDdlnDt"), formatter))
+                    .contractMethod("")
+                    .productId(detailProduct.getId())
+                    .build());
+        }
+    }
+
+    /**
+     * 발주목록 > 사전규격 > 물품 - 세부품목별 검색 결과 중 공고 번호 반환
+     * @param sessionId 요청할 세션 id
+     * @param itemNumber 세부 품목 번호
+     * @return 검색 결과 중 공고 번호 리스트로 반환
+     */
+    private List<String> getOrderPlanNoList(String sessionId, String itemNumber) throws IOException, InterruptedException {
+        List<String> orderPlanNoList = new ArrayList<>();
+        final HttpRequest dataRequest = buildOrderRequest(sessionId, itemNumber);
+        // 요청 객체로 세부 품목별 사전규격 검색 결과 응답 객체 반환
+        HttpResponse<String> dataResponse = client.send(dataRequest, HttpResponse.BodyHandlers.ofString());
+
+        // 응답 객체 처리 - 검색 결과 중 공고 번호만 추출
+        JsonNode rootNode = objectMapper.readTree(dataResponse.body());
+        if (rootNode.has("dlOderReqL")) {
+            for (JsonNode item : rootNode.get("dlOderReqL")) {
+                orderPlanNoList.add(item.get("oderPlanNo").asText());
+            }
+        }
+        log.info("orderPlanNoList : {}", orderPlanNoList);
+        return orderPlanNoList;
+    }
+
+    /**
+     * 세부품목별 사전규격 검색 결과 리스트 응답을 위한 요청객체 생성
+     * @param sessionId 요청에 보낼 세션 id
+     * @param itemNumber 세부품목번호
+     * @return 요청객체
+     */
+    private static HttpRequest buildOrderRequest(String sessionId, String itemNumber) {
+        // 2️⃣ selectOderReqList.do 요청 (가져온 JSESSIONID + 추가적인 쿠키 사용)
+        String jsonInputString = "{"
+                + "\"dlOderReqSrchM\":{"
+                + "    \"srchTy\":\"0002\","
+                + "    \"prgrsBgngYmd\":\"20250123\"," // 오늘일자 기준 한달 전
+                + "    \"prgrsEndYmd\":\"20250222\"," // 오늘 일자
+                + "    \"currentPage\":1,"
+                + "    \"recordCountPerPage\":100,"  // 불러올 결과 index
+                + "    \"dtlsPrnmNo\":\""+ itemNumber + "\"," // 검색할 세부 품명 번호
+                + "    \"prcmBsneSeCd\":\"01\","
+                + "    \"oderStTm\":\"202412\"," // 작년 12월
+                + "    \"oderEdYm\":\"202512\""  // 올해 12월
+                + "}}";
+
+        String cookies = "JSESSIONID=" + sessionId
+                + "; WHATAP=z28iebqcob0r3d"
+                + "; XTVID=A2502222156174447"
+                + "; Path=/"
+                + "; infoSysCd=%EC%A0%95010029"
+                + "; _harry_url=https%3A//www.g2b.go.kr/"
+                + "; XTSID=A250222215618811067"
+                + "; lastAccess=1740228992438";
+
+        HttpRequest dataRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://www.g2b.go.kr/pr/prc/prca/OderReq/selectOderReqList.do"))
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .header("Accept", "application/json")
+                .header("Referer", "https://www.g2b.go.kr/")
+                .header("Cookie", cookies) // 갱신된 쿠키 포함
+                .header("menu-info", "{\"menuNo\":\"13713\",\"menuCangVal\":\"PRCA001_04\",\"bsneClsfCd\":\"%EC%97%85130025\",\"scrnNo\":\"00963\"}")
+                .header("submissionid", "mf_wfm_container_smSearchOderReqLstList")
+                .header("target-id", "btnS0001")
+                .header("usr-id", "null")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonInputString))
+                .build();
+
+        return dataRequest;
+    }
+
+    /**
+     * 요청에 보낼 공통 세션 id 반환
+     * @return 세션 id
+     */
+    private String getSessionId() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://www.g2b.go.kr/co/coz/coza/util/getSession.do"))
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .header("Referer", "https://www.g2b.go.kr/")
+                .header("User-Agent", "Mozilla/5.0")
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return extractJSessionId(response.headers().map());
+    }
+
+    /**
+     * 공고별 상세 정보 요청 후 결과 응답 객체 반환
+     * @param sessionId 요청할 세션 id
+     * @param orderPlanNo 검색할 공고 번호
+     * @return 공고 번호에 따른 상세 정보 응답 객체로 반환
+     */
+    private HttpResponse<String> getDetailResultHttpResponse(String sessionId, String orderPlanNo) throws IOException, InterruptedException {
+        String jsonInputString = "{"
+                + "\"dlParamM\":{"
+                + "    \"bfSpecRegNo\":\""+orderPlanNo+"\""
+                + "}}";
+
+        String cookies = "JSESSIONID=" + sessionId
+                + "; WHATAP=x342cfbfle816r"
+                + "; XTVID=A2501271422049643"
+                + "; Path=/"
+                + "; infoSysCd=%EC%A0%95010029"
+                + "; _harry_url=https%3A//www.g2b.go.kr/"
+                + "; xloc=1194X834"
+                + "; poupR23AB0000013499=done"
+                + "; lastAccess=1740232230001";
+
+        HttpRequest dataRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://www.g2b.go.kr/pn/pnz/pnza/BfSpec/selectBfSpec.do"))
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .header("Accept", "application/json")
+                .header("Referer", "https://www.g2b.go.kr/")
+                .header("Cookie", cookies) // 갱신된 쿠키 포함
+                .header("menu-info", "{\"menuNo\":\"01141\",\"menuCangVal\":\"PRVA004_02\",\"bsneClsfCd\":\"%EC%97%85130025\",\"scrnNo\":\"05929\"}")
+                .header("submissionid", "mf_wfm_container_sbmSrch")
+                .header("usr-id", "null")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonInputString))
+                .build();
+
+        return client.send(dataRequest, HttpResponse.BodyHandlers.ofString());
+    }
+
+    /**
+     * 응답 객체 중 날짜 데이터가 없을 경우 null 처리
+     * @param node 응답 객체 중 날짜 데이터
+     * @param formatter 변환할 날짜 데이터
+     * @return LocalDateTime 형식으로 변환된 날짜 데이터
+     */
+    private LocalDateTime parseDate(JsonNode node, DateTimeFormatter formatter) {
+        try {
+            String dateStr = StringEscapeUtils.unescapeHtml4(node.asText(null)); // 없으면 null 반환
+            return (dateStr != null && !dateStr.isEmpty())
+                    ? LocalDateTime.parse(dateStr, formatter)
+                    : null;
+        } catch (Exception e) {
+            return null; // 변환 실패 시 null 반환
+        }
+    }
+
+    /**
+     * JSESSIONID 추출 메서드
+     * @param headers 응답 객체 Headers
+     * @return 세션 id
+     */
+    private static String extractJSessionId(Map<String, List<String>> headers) {
+        if (headers.containsKey("set-cookie")) {
+            for (String cookie : headers.get("set-cookie")) {
+                if (cookie.startsWith("JSESSIONID=")) {
+                    return cookie.split(";")[0].split("=")[1]; // JSESSIONID 값 추출
+                }
+            }
+        }
+        return null;
+    }
+
+
+
+
+
+}

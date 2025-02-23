@@ -1,6 +1,7 @@
 package com.nivuskorea.procurement.config;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -17,22 +18,12 @@ public class SeleniumConfig {
     @Value("${selenium.headless}")
     private boolean headless;
 
-    @Bean
     public WebDriver webDriver(){
         try {
             System.out.println("Selenium WebDriver 설정 시작... (Headless: " + headless + ")");
 
             WebDriverManager.chromedriver().setup(); // 크롬 드라이버 자동 다운로드 및 설정
-            ChromeOptions options = new ChromeOptions();
-
-            if (headless) {
-                options.addArguments("--headless"); // UI 없이 실행
-            }
-
-            //gpu 가속 비활성화(일부 환경에서의 오류 방지), 샌드박스 모드 비활성화(일부 환경에서 충돌 방지), 공유 메모리 문제 해결
-            options.addArguments("--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage");
-
-            WebDriver driver = new ChromeDriver(options);
+            final WebDriver driver = createWebDriver();
             // 요소가 나타날 때까지 3초 지연
             driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
 
@@ -47,4 +38,19 @@ public class SeleniumConfig {
             throw new RuntimeException("WebDriver 초기화 실패", e);
         }
     }
+
+    @NotNull
+    private WebDriver createWebDriver() {
+        ChromeOptions options = new ChromeOptions();
+
+        if (headless) {
+            options.addArguments("--headless"); // UI 없이 실행
+        }
+
+        //gpu 가속 비활성화(일부 환경에서의 오류 방지), 샌드박스 모드 비활성화(일부 환경에서 충돌 방지), 공유 메모리 문제 해결
+        options.addArguments("--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage");
+
+        return new ChromeDriver(options);
+    }
+
 }

@@ -14,7 +14,7 @@ public class ContractType extends BaseEntity{
     @Id
     @Column(name = "contract_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "contract_types_seq_gen")
-    @SequenceGenerator(name = "contract_types_seq_gen", sequenceName = "procurement.contract_types_seq", allocationSize = 50)
+    @SequenceGenerator(name = "contract_types_seq_gen", sequenceName = "procurement.contract_types_seq", allocationSize = 1)
     private Long id;
 
     @Enumerated(EnumType.STRING)

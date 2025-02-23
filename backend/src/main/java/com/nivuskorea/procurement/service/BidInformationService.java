@@ -37,12 +37,12 @@ public class BidInformationService {
     }
 
     /**
-     * 조건별 조회 결과 batchinsert
+     * 입찰공고 - 조건별 조회 결과 batchinsert
      * @param bids 조회 결과
      */
     @Transactional
-    public void saveAllBids(List<BidInformationDto> bids) {
-        log.info("saveAllBids 실행");
+    public void saveBidAnnAllBids(List<BidInformationDto> bids) {
+        log.info("saveBidAnnAllBids 실행");
         List<BidInformation> bidInformationList = new ArrayList<>();
         bids.forEach(bid -> {
             DetailProduct detailProductById = detailProductsService.getDetailProductById(bid.getProductId());
@@ -50,7 +50,22 @@ public class BidInformationService {
             ContractType contractTypeById = contractMethodsService.getContractMethodById(bid.getContractId());
             bidInformationList.add(new BidInformation(bid, detailProductById, restrictRegionById, contractTypeById));
         });
-        batchRepository.batchUpsert(bidInformationList);
+        batchRepository.bidAnnBatchUpsert(bidInformationList);
+    }
+
+    /**
+     * 사전규격 - 조건별 조회 결과 batchinsert
+     * @param bids 조회 결과
+     */
+    @Transactional
+    public void savePreStdAllBids(List<BidInformationDto> bids) {
+        log.info("savePreStandAllBids 실행");
+        List<BidInformation> bidInformationList = new ArrayList<>();
+        bids.forEach(bid -> {
+            DetailProduct detailProductById = detailProductsService.getDetailProductById(bid.getProductId());
+            bidInformationList.add(new BidInformation(bid, detailProductById));
+        });
+        batchRepository.preStdBatchUpsert(bidInformationList);
     }
 
 }
