@@ -5,15 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nivuskorea.procurement.dto.BidInformationDto;
 import com.nivuskorea.procurement.entity.*;
-import com.nivuskorea.procurement.factory.WebDriverFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringEscapeUtils;
-import org.openqa.selenium.*;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -21,14 +15,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -191,22 +184,35 @@ public class NaraApiService {
 
     /**
      * 세부품목별 사전규격 검색 결과 리스트 응답을 위한 요청객체 생성
-     * @param sessionId 요청에 보낼 세션 id
+     *
+     * @param sessionId  요청에 보낼 세션 id
      * @param itemNumber 세부품목번호
      * @return 요청객체
      */
     private static HttpRequest buildOrderRequest(String sessionId, String itemNumber, String searchKeyword, String prcmBsneSeCd) {
+        // 요청일자 setting
+        LocalDate today = LocalDate.now();
+        final LocalDate oneMonthAgo = today.minusMonths(1);
+        final LocalDate lastYearDec = today.minusYears(1).withMonth(12);
+        final LocalDate thisYearDec = today.withMonth(12);
+
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyMMdd");
+        final DateTimeFormatter yearMonthFormatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        // 요청 객체 생성
         Map<String, Object> dlOderReqSrchM = new HashMap<>();
         dlOderReqSrchM.put("srchTy", "0002");
         dlOderReqSrchM.put("bizNm", searchKeyword);             // 검색할 검색어
-        dlOderReqSrchM.put("prgrsBgngYmd", "20250124"); // 오늘일자 기준 한달 전
-        dlOderReqSrchM.put("prgrsEndYmd", "20250223");  // 오늘 일자
+        dlOderReqSrchM.put("prgrsBgngYmd", oneMonthAgo.format(formatter)); // 오늘일자 기준 한달 전
+        dlOderReqSrchM.put("prgrsEndYmd", today.format(formatter));  // 오늘 일자
         dlOderReqSrchM.put("currentPage", 1);           // 불러올 페이지
         dlOderReqSrchM.put("recordCountPerPage", 100);  // 불러올 결과 index 수
         dlOderReqSrchM.put("dtlsPrnmNo", itemNumber);   // 검색할 세부 품명 번호
         dlOderReqSrchM.put("prcmBsneSeCd", prcmBsneSeCd);
-        dlOderReqSrchM.put("oderStTm", "202412");   // 작년 12월
-        dlOderReqSrchM.put("oderEdYm", "202512");   // 올해 12월
+        dlOderReqSrchM.put("oderStTm", lastYearDec.format(yearMonthFormatter));   // 작년 12월
+        dlOderReqSrchM.put("oderEdYm", thisYearDec.format(yearMonthFormatter));   // 올해 12월
+
+//        log.info("dlOderReqSrchM : {}", dlOderReqSrchM);
 
         Map<String, Object> jsonRequest = new HashMap<>();
         jsonRequest.put("dlOderReqSrchM", dlOderReqSrchM);
