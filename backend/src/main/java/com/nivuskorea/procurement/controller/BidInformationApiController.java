@@ -1,5 +1,6 @@
 package com.nivuskorea.procurement.controller;
 
+import com.nivuskorea.procurement.dto.BidInfoActiveDto;
 import com.nivuskorea.procurement.dto.BidInformationDto;
 import com.nivuskorea.procurement.service.BidInformationService;
 import com.nivuskorea.procurement.service.NaraBidAnnApiService;
@@ -25,8 +26,8 @@ public class BidInformationApiController {
     private final NaraBidAnnApiService naraBidAnnApiService;
 
     @GetMapping("/all")
-    public List<BidInformationDto> getAllBids(){
-        List<BidInformationDto> all = bidInformationService.getActiveBids();
+    public List<BidInfoActiveDto> getAllBids(){
+        List<BidInfoActiveDto> all = bidInformationService.getActiveBids();
 //        log.info("/all 조회 결과 : {}",all.toString());
         return all;
     }

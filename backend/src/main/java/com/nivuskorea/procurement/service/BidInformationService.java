@@ -1,5 +1,6 @@
 package com.nivuskorea.procurement.service;
 
+import com.nivuskorea.procurement.dto.BidInfoActiveDto;
 import com.nivuskorea.procurement.dto.BidInformationDto;
 import com.nivuskorea.procurement.entity.*;
 import com.nivuskorea.procurement.repository.BidInfomationRepository;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,14 +27,22 @@ public class BidInformationService {
     private final ContractTypesService contractTypesService;
     private final ProjectSearchKeywordsService projectSearchKeywordsService;
 
-    public List<BidInformationDto> getActiveBids(){
-        List<BidInformation> activeBids = bidInfomationRepository.findActiveBids();
-        List<BidInformationDto> dtoActiveBids = new ArrayList<>();
-        activeBids.forEach(activeBid->{
-            dtoActiveBids.add(BidInformationDto.fromEntity(activeBid));
-        });
-        return dtoActiveBids;
+    public List<BidInfoActiveDto> getActiveBids() {
+        List<Object[]> results = bidInfomationRepository.findActiveBids();
+
+        return results.stream().map(obj -> new BidInfoActiveDto(
+                (String) obj[0], // category
+                BidType.valueOf((String) obj[1]), // bidType
+                (String) obj[2], // title
+                (String) obj[3], // institution
+                (String) obj[4], // bidNumber
+                (Long) obj[5], // estimatedAmount
+                obj[6] != null ? ((Timestamp) obj[6]).toLocalDateTime() : null, // announcementDate
+                obj[7] != null ? ((Timestamp) obj[7]).toLocalDateTime() : null, // deadline
+                (String) obj[8] // contractMethod
+        )).toList();
     }
+
 
     /**
      * 입찰공고 - 조건별 조회 결과 batchinsert
