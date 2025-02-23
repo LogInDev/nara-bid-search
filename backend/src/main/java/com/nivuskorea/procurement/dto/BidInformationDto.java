@@ -24,6 +24,7 @@ public class BidInformationDto {
     private Long productId;  // DetailProduct의 FK
     private Long regionId;   // RestrictedRegion의 FK
     private Long contractId;   // ContractType의 FK
+    private Long keywordId;   // ProjectSearchKeyword의 FK
 
     public static BidInformationDto fromEntity(BidInformation entity) {
         return BidInformationDto.builder()

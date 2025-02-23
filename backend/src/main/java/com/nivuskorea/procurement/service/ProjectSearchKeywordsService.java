@@ -20,7 +20,7 @@ public class ProjectSearchKeywordsService {
         return projectSearchKeywordsRepository.findByBidType(bidType);
     }
 
-    public ProjectSearchKeyword getContractMethodById(Long id) {
+    public ProjectSearchKeyword getSearchKeywordById(Long id) {
         return projectSearchKeywordsRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ProjectSearchKeyword not found with id: " + id));
     }

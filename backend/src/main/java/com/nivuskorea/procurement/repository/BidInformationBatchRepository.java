@@ -111,5 +111,50 @@ public class BidInformationBatchRepository {
         }
     }
 
+    private static final String UPSERT_PRE_STD_KEYWORD_SQL = """
+        INSERT INTO procurement.bid_information (
+            category, bid_type, title, institution, bid_number, estimated_amount, announcement_date, deadline, contract_method, keyword_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (bid_number)
+        DO UPDATE SET
+            category = EXCLUDED.category,
+            bid_type = EXCLUDED.bid_type,
+            title = EXCLUDED.title,
+            institution = EXCLUDED.institution,
+            estimated_amount = EXCLUDED.estimated_amount,
+            announcement_date = EXCLUDED.announcement_date,
+            deadline = EXCLUDED.deadline,
+            contract_method = EXCLUDED.contract_method,
+            keyword_id = EXCLUDED.keyword_id;
+    """;
+
+    @Transactional
+    public void preStdKeywordBatchUpsert(List<BidInformation> bidList) {
+        int batchSize = 50; // 배치 사이즈 조절 가능
+        for (int i = 0; i < bidList.size(); i++) {
+            BidInformation bid = bidList.get(i);
+
+            Query query = entityManager.createNativeQuery(UPSERT_PRE_STD_KEYWORD_SQL)
+                    .setParameter(1, bid.getCategory().name())
+                    .setParameter(2, bid.getBidType().name())
+                    .setParameter(3, bid.getTitle())
+                    .setParameter(4, bid.getInstitution())
+                    .setParameter(5, bid.getBidNumber())
+                    .setParameter(6, bid.getEstimatedAmount())
+                    .setParameter(7, bid.getAnnouncementDate())
+                    .setParameter(8, bid.getDeadline())
+                    .setParameter(9, bid.getContractMethod())
+                    .setParameter(10, bid.getProjectSearchKeyword().getId());
+
+            query.executeUpdate();
+
+            // 배치 처리
+            if (i % batchSize == 0) {
+                entityManager.flush();
+                entityManager.clear();
+            }
+        }
+    }
+
 }
 

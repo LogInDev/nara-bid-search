@@ -85,7 +85,7 @@ public class BidInformation  extends BaseEntity{
     }
 
     // 발주 > 사전 규격 > 일반용역, 기술용역 검색 결과
-    public BidInformation(BidInformationDto dto, DetailProduct detailProduct, ProjectSearchKeyword projectSearchKeyword) {
+    public BidInformation(BidInformationDto dto, ProjectSearchKeyword projectSearchKeyword) {
         this.category = Category.fromString(dto.getCategory());
         this.bidType = BidType.fromString(dto.getBidType());
         this.title = dto.getTitle();
@@ -95,7 +95,6 @@ public class BidInformation  extends BaseEntity{
         this.announcementDate = dto.getAnnouncementDate();
         this.deadline = dto.getDeadline();
         this.contractMethod = dto.getContractMethod();
-        this.detailProduct = detailProduct;  // FK 엔터티 설정
         this.projectSearchKeyword = projectSearchKeyword;  // FK 엔터티 설정
     }
 

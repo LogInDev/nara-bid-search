@@ -1,5 +1,6 @@
 package com.nivuskorea.procurement.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nivuskorea.procurement.dto.BidInformationDto;
@@ -24,6 +25,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -47,12 +49,11 @@ public class NaraApiService {
 
         try {
             final String sessionId = getSessionId();
-            System.out.println("새로운 JSESSIONID: " + sessionId);
 
             List<DetailProduct> detailProducts = detailProductsService.selectByBidType(BidType.PRE_STANDARD);
 
             for (DetailProduct detailProduct : detailProducts) {
-                List<String> orderPlanNoList = getOrderPlanNoList(sessionId, detailProduct.getItemNumber());
+                List<String> orderPlanNoList = getOrderPlanNoList(sessionId, detailProduct.getItemNumber(), "", "01");
                 processOrderPlans(sessionId, orderPlanNoList, detailProduct);
             };
 
@@ -61,11 +62,26 @@ public class NaraApiService {
         }
     }
 
-
+    /**
+     * 검색어 결과 조회
+     */
     public void keywordApi(){
-        final List<ProjectSearchKeyword> projectSearchKeywords = projectSearchKeywordsService.selectByBidType(BidType.PRE_STANDARD);
-        System.out.println("projectSearchKeywords = " + projectSearchKeywords);
+        try {
+            final List<ProjectSearchKeyword> projectSearchKeywords = projectSearchKeywordsService.selectByBidType(BidType.PRE_STANDARD);
+            final String sessionId = getSessionId();
+
+            for (ProjectSearchKeyword projectSearchKeyword : projectSearchKeywords) {
+                List<String> orderPlanNoList = getOrderPlanNoList(sessionId, "", projectSearchKeyword.getSearchKeyword(), "03 05");
+                processOrderPlans(sessionId, orderPlanNoList, projectSearchKeyword);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+
+
 
     /**
      * 공고 번호별 검색 요청 및 응답 결과 Entity 리스트로 생성
@@ -83,8 +99,20 @@ public class NaraApiService {
                 e.printStackTrace();
             }
         }
-        System.out.println("bidList = " + bidList);
         bidInformationService.savePreStdAllBids(bidList);
+
+    }
+    private void processOrderPlans(String sessionId, List<String> orderPlanNoList, ProjectSearchKeyword projectSearchKeyword) {
+        List<BidInformationDto> bidList = new ArrayList<>();
+        for (String orderPlanNo : orderPlanNoList) {
+            try {
+                HttpResponse<String> response = getDetailResultHttpResponse(sessionId, orderPlanNo);
+                parseResponse(response.body(), bidList, projectSearchKeyword);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        bidInformationService.savePreStdKeywordsAllBids(bidList);
 
     }
 
@@ -101,29 +129,52 @@ public class NaraApiService {
         if (rootNode.has("dlBfSpecM")) {
             JsonNode item = rootNode.get("dlBfSpecM");
             bidList.add(BidInformationDto.builder()
-                    .category("물품") // item.get("prcmBsneSeCdNm").asText("")
+                    .category(item.get("prcmBsneSeCdNm").asText(""))
                     .bidType("사전규격")
-                    .title(StringEscapeUtils.unescapeHtml4(item.get("bfSpecNm").asText("")))
-                    .institution(StringEscapeUtils.unescapeHtml4(item.get("dmstUntyGrpNm").asText("")))
-                    .bidNumber(StringEscapeUtils.unescapeHtml4(item.get("bfSpecRegNo").asText("")))
-                    .estimatedAmount(item.get("alotBgtPrspAmt").asLong(0L))
-                    .announcementDate(parseDate(item.path("specRlsDt"), formatter))
-                    .deadline(parseDate(item.path("opnnRegDdlnDt"), formatter))
+                    .title(StringEscapeUtils.unescapeHtml4(item.get("bfSpecNm").asText("")))    // 공고명
+                    .institution(StringEscapeUtils.unescapeHtml4(item.get("dmstUntyGrpNm").asText(""))) // 수요기관
+                    .bidNumber(StringEscapeUtils.unescapeHtml4(item.get("bfSpecRegNo").asText(""))) // 공고번호
+                    .estimatedAmount(item.get("alotBgtPrspAmt").asLong(0L)) // 기초금액(배정예산액)
+                    .announcementDate(parseDate(item.path("specRlsDt"), formatter)) // 공고일(공개일시)
+                    .deadline(parseDate(item.path("opnnRegDdlnDt"), formatter)) // 마감일(의견등록마감)
                     .contractMethod("")
                     .productId(detailProduct.getId())
                     .build());
         }
     }
+    // 키워드 검색용
+    private void parseResponse(String responseBody, List<BidInformationDto> bidList, ProjectSearchKeyword projectSearchKeyword) throws Exception {
+        JsonNode rootNode = objectMapper.readTree(responseBody);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+
+        if (rootNode.has("dlBfSpecM")) {
+            JsonNode item = rootNode.get("dlBfSpecM");
+            bidList.add(BidInformationDto.builder()
+                    .category(item.get("prcmBsneSeCdNm").asText(""))
+                    .bidType("사전규격")
+                    .title(StringEscapeUtils.unescapeHtml4(item.get("bfSpecNm").asText("")))    // 공고명
+                    .institution(StringEscapeUtils.unescapeHtml4(item.get("dmstUntyGrpNm").asText(""))) // 수요기관
+                    .bidNumber(StringEscapeUtils.unescapeHtml4(item.get("bfSpecRegNo").asText(""))) // 공고번호
+                    .estimatedAmount(item.get("alotBgtPrspAmt").asLong(0L)) // 기초금액(배정예산액)
+                    .announcementDate(parseDate(item.path("specRlsDt"), formatter)) // 공고일(공개일시)
+                    .deadline(parseDate(item.path("opnnRegDdlnDt"), formatter)) // 마감일(의견등록마감)
+                    .contractMethod("")
+                    .keywordId(projectSearchKeyword.getId())
+                    .build());
+        }
+    }
 
     /**
-     * 발주목록 > 사전규격 > 물품 - 세부품목별 검색 결과 중 공고 번호 반환
+     * 발주목록 > 사전규격 공고 검색
      * @param sessionId 요청할 세션 id
-     * @param itemNumber 세부 품목 번호
+     * @param itemNumber 세부 품목 번호('물품' 검색 시)
+     * @param searchKeyword 검색할 검색어('일반용역', '기술용역' 검색 시)
+     * @param prcmBsneSeCd '물품' : 01 || '일반용역' : 03 || '기술용역' : 05
      * @return 검색 결과 중 공고 번호 리스트로 반환
      */
-    private List<String> getOrderPlanNoList(String sessionId, String itemNumber) throws IOException, InterruptedException {
+    private List<String> getOrderPlanNoList(String sessionId, String itemNumber, String searchKeyword, String prcmBsneSeCd) throws IOException, InterruptedException {
         List<String> orderPlanNoList = new ArrayList<>();
-        final HttpRequest dataRequest = buildOrderRequest(sessionId, itemNumber);
+        final HttpRequest dataRequest = buildOrderRequest(sessionId, itemNumber, searchKeyword, prcmBsneSeCd);
         // 요청 객체로 세부 품목별 사전규격 검색 결과 응답 객체 반환
         HttpResponse<String> dataResponse = client.send(dataRequest, HttpResponse.BodyHandlers.ofString());
 
@@ -144,20 +195,23 @@ public class NaraApiService {
      * @param itemNumber 세부품목번호
      * @return 요청객체
      */
-    private static HttpRequest buildOrderRequest(String sessionId, String itemNumber) {
-        // 2️⃣ selectOderReqList.do 요청 (가져온 JSESSIONID + 추가적인 쿠키 사용)
-        String jsonInputString = "{"
-                + "\"dlOderReqSrchM\":{"
-                + "    \"srchTy\":\"0002\","
-                + "    \"prgrsBgngYmd\":\"20250123\"," // 오늘일자 기준 한달 전
-                + "    \"prgrsEndYmd\":\"20250222\"," // 오늘 일자
-                + "    \"currentPage\":1,"
-                + "    \"recordCountPerPage\":100,"  // 불러올 결과 index
-                + "    \"dtlsPrnmNo\":\""+ itemNumber + "\"," // 검색할 세부 품명 번호
-                + "    \"prcmBsneSeCd\":\"01\","
-                + "    \"oderStTm\":\"202412\"," // 작년 12월
-                + "    \"oderEdYm\":\"202512\""  // 올해 12월
-                + "}}";
+    private static HttpRequest buildOrderRequest(String sessionId, String itemNumber, String searchKeyword, String prcmBsneSeCd) {
+        Map<String, Object> dlOderReqSrchM = new HashMap<>();
+        dlOderReqSrchM.put("srchTy", "0002");
+        dlOderReqSrchM.put("bizNm", searchKeyword);             // 검색할 검색어
+        dlOderReqSrchM.put("prgrsBgngYmd", "20250124"); // 오늘일자 기준 한달 전
+        dlOderReqSrchM.put("prgrsEndYmd", "20250223");  // 오늘 일자
+        dlOderReqSrchM.put("currentPage", 1);           // 불러올 페이지
+        dlOderReqSrchM.put("recordCountPerPage", 100);  // 불러올 결과 index 수
+        dlOderReqSrchM.put("dtlsPrnmNo", itemNumber);   // 검색할 세부 품명 번호
+        dlOderReqSrchM.put("prcmBsneSeCd", prcmBsneSeCd);
+        dlOderReqSrchM.put("oderStTm", "202412");   // 작년 12월
+        dlOderReqSrchM.put("oderEdYm", "202512");   // 올해 12월
+
+        Map<String, Object> jsonRequest = new HashMap<>();
+        jsonRequest.put("dlOderReqSrchM", dlOderReqSrchM);
+
+        String jsonInputString = convertToJson(jsonRequest);
 
         String cookies = "JSESSIONID=" + sessionId
                 + "; WHATAP=z28iebqcob0r3d"
@@ -184,6 +238,15 @@ public class NaraApiService {
 
         return dataRequest;
     }
+
+    private static String convertToJson(Object obj) {
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON 변환 실패", e);
+        }
+    }
+
 
     /**
      * 요청에 보낼 공통 세션 id 반환

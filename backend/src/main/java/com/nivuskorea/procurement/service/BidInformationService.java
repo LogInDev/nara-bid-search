@@ -1,10 +1,7 @@
 package com.nivuskorea.procurement.service;
 
 import com.nivuskorea.procurement.dto.BidInformationDto;
-import com.nivuskorea.procurement.entity.BidInformation;
-import com.nivuskorea.procurement.entity.ContractType;
-import com.nivuskorea.procurement.entity.DetailProduct;
-import com.nivuskorea.procurement.entity.RestrictedRegion;
+import com.nivuskorea.procurement.entity.*;
 import com.nivuskorea.procurement.repository.BidInfomationRepository;
 import com.nivuskorea.procurement.repository.BidInformationBatchRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +23,7 @@ public class BidInformationService {
     private final DetailProductsService detailProductsService;
     private final RestrictedRegionService restrictedRegionService;
     private final ContractTypesService contractTypesService;
+    private final ProjectSearchKeywordsService projectSearchKeywordsService;
 
     public List<BidInformationDto> getActiveBids(){
         List<BidInformation> activeBids = bidInfomationRepository.findActiveBids();
@@ -54,7 +52,7 @@ public class BidInformationService {
     }
 
     /**
-     * 사전규격 - 조건별 조회 결과 batchinsert
+     * 사전규격 - 물품 > 세품품목별 조회 결과 batchinsert
      * @param bids 조회 결과
      */
     @Transactional
@@ -66,6 +64,20 @@ public class BidInformationService {
             bidInformationList.add(new BidInformation(bid, detailProductById));
         });
         batchRepository.preStdBatchUpsert(bidInformationList);
+    }
+    /**
+     * 사전규격 - 일반용역, 기술용역 > 검색어별 조회 결과 batchinsert
+     * @param bids 조회 결과
+     */
+    @Transactional
+    public void savePreStdKeywordsAllBids(List<BidInformationDto> bids) {
+        log.info("savePreStdKeywordsAllBids 실행");
+        List<BidInformation> bidInformationList = new ArrayList<>();
+        bids.forEach(bid -> {
+            ProjectSearchKeyword searchKeywordById = projectSearchKeywordsService.getSearchKeywordById(bid.getKeywordId());
+            bidInformationList.add(new BidInformation(bid, searchKeywordById));
+        });
+        batchRepository.preStdKeywordBatchUpsert(bidInformationList);
     }
 
 }
