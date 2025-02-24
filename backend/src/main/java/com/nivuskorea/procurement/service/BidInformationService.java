@@ -31,8 +31,8 @@ public class BidInformationService {
         List<Object[]> results = bidInfomationRepository.findActiveBids();
 
         return results.stream().map(obj -> new BidInfoActiveDto(
-                (String) obj[0], // category
-                BidType.valueOf((String) obj[1]), // bidType
+                Category.valueOf((String) obj[0]).getDescription(), // category
+                BidType.valueOf((String) obj[1]).getDescription(), // bidType
                 (String) obj[2], // title
                 (String) obj[3], // institution
                 (String) obj[4], // bidNumber

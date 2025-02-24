@@ -28,7 +28,7 @@ public class BidInformationApiController {
     @GetMapping("/all")
     public List<BidInfoActiveDto> getAllBids(){
         List<BidInfoActiveDto> all = bidInformationService.getActiveBids();
-//        log.info("/all 조회 결과 : {}",all.toString());
+        log.info("/all 조회 결과 : {}",all.toString());
         return all;
     }
 
