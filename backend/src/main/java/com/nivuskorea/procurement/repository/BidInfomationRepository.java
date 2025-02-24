@@ -27,7 +27,7 @@ public interface BidInfomationRepository extends JpaRepository<BidInformation, L
            bid_number, estimated_amount, 
            announcement_date, deadline, contract_method
     FROM procurement.bid_information
-    WHERE bid_type = 'PRE_STANDARD'
+    WHERE bid_type = 'PRE_STANDARD' and announcement_date >= current_timestamp - '1 month'::interval
     """, nativeQuery = true)
     List<Object[]> findActiveBids();
 

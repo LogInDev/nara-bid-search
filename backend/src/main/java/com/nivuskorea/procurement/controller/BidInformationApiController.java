@@ -36,8 +36,8 @@ public class BidInformationApiController {
     public String testApi(){
 
         naraBidAnnApiService.bidAnnApi();
-//        naraProcurementApiService.keywordApi();
-//        naraProcurementApiService.procurementApi();
+        naraProcurementApiService.keywordApi();
+        naraProcurementApiService.procurementApi();
 
         return "testApi - ok";
     }
