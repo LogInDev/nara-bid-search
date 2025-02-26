@@ -35,7 +35,8 @@ public class BidInformationApiController {
     @GetMapping("/test")
     public String testApi(){
 
-        naraBidAnnApiService.bidAnnApi();
+//        naraBidAnnApiService.downloadFiles();
+//        naraBidAnnApiService.bidAnnApi();
 //        naraProcurementApiService.keywordApi();
 //        naraProcurementApiService.procurementApi();
 

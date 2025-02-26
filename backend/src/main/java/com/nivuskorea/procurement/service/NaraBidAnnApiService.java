@@ -11,17 +11,23 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static ch.qos.logback.core.encoder.ByteArrayUtil.hexStringToByteArray;
 
 @Service
 @Slf4j
@@ -35,6 +41,144 @@ public class NaraBidAnnApiService {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     HttpClient client = HttpClient.newHttpClient();
+
+
+    public void downloadFiles(){
+        try{
+            final String sessionId = getSessionId();
+            // 요청 객체 생성
+//            String payloadData = "k00=a2MMYzianzwExorC2swMQwxC2sxMgxjMDk0MjgwNjcxODg0ZDhhYWM2MzM2MmRjMjNkNmRkYwtrMDUMMAtrMjYML2RhdGEvQXR0YWNoZmlsZXMvcHJ2YS8yMDI1LzAyLzEwLzg4ZmY1ZjY3OTdmYjQ3MDZiNWVhMDM1YWY4ZGM3MjA0Lmh3cAtrMzEMMi4g7KeA7Lmo7IScLmh3cAtrMjEMZDU4ZjllMzUtZTIwOC00NThlLThmMTctYWM1MGRiYzFlOWViLDE%3D&X-CSRF-Token=";
+
+            String no = "21";
+            String base64Encoded = Base64.getEncoder().encodeToString(no.getBytes(StandardCharsets.UTF_8)).replace("=", "");  // '=' 제거;
+            no = URLEncoder.encode(base64Encoded, StandardCharsets.UTF_8);
+
+            // **파일 관련 정보**
+            String untyAtchFileNo = "d58f9e35-e208-458e-8f17-ac50dbc1e9eb";
+            base64Encoded = Base64.getEncoder().encodeToString(untyAtchFileNo.getBytes(StandardCharsets.UTF_8));
+            untyAtchFileNo = URLEncoder.encode(base64Encoded, StandardCharsets.UTF_8);
+            untyAtchFileNo = no +"M"+ untyAtchFileNo;
+            System.out.println("untyAtchFileNo = " + untyAtchFileNo);
+
+            no = "26";
+            base64Encoded = Base64.getEncoder().encodeToString(no.getBytes(StandardCharsets.UTF_8)).replace("=", "");  // '=' 제거;
+            no = URLEncoder.encode(base64Encoded, StandardCharsets.UTF_8);
+
+            String atchFilePathNm = "/data/Attachfiles/prva/2025/02/10/88ff5f6797fb4706b5ea035af8dc7204.hwp";
+            base64Encoded = Base64.getEncoder().encodeToString(atchFilePathNm.getBytes(StandardCharsets.UTF_8)).replace("==", "");  // '=' 제거;
+            atchFilePathNm = URLEncoder.encode(base64Encoded, StandardCharsets.UTF_8);
+            atchFilePathNm = no + "M" + atchFilePathNm;
+            System.out.println("atchFilePathNm = " + atchFilePathNm);
+
+            no = "31";
+            base64Encoded = Base64.getEncoder().encodeToString(no.getBytes(StandardCharsets.UTF_8)).replace("=", "");  // '=' 제거;
+            no = URLEncoder.encode(base64Encoded, StandardCharsets.UTF_8);
+
+            String orgnlAtchFileNm = "2. 지침서.hwp";
+            base64Encoded = Base64.getEncoder().encodeToString(orgnlAtchFileNm.getBytes(StandardCharsets.UTF_8)).replace("==", "");  // '=' 제거;
+            orgnlAtchFileNm = URLEncoder.encode(base64Encoded, StandardCharsets.UTF_8);
+            orgnlAtchFileNm = no + "M" + orgnlAtchFileNm;
+            System.out.println("orgnlAtchFileNm = " + orgnlAtchFileNm);
+
+            byte[] bytes = hexStringToByteArray("764d06af84f49ecaadc88e52105fddf");
+
+            String base64 = Base64.getEncoder().encodeToString(bytes);
+            System.out.println("해독핻고base64 = " + base64);
+
+            //+ k01 1 k12 1bcabc0e76724017b034b47b6f769193
+//            String encodedStr = "ExorC2swMQwxC2sxMgwxYmNhYmMwZTc2NzI0MDE3YjAzNGI0N2I2Zjc2OTE5Mw";
+            String encodedStr = "NzY0ZDA2YWY4NGY0OWVjYWFkYzg4ZTUyMTA1ZmRkZg";
+
+            // Base64 디코딩
+            byte[] decodedBytes = Base64.getDecoder().decode(encodedStr);
+
+            // 사용할 인코딩 목록
+            List<Charset> encodings = Arrays.asList(
+                    StandardCharsets.UTF_8,
+                    Charset.forName("EUC-KR"),
+                    Charset.forName("MS949"),
+                    Charset.forName("ISO-8859-1")
+            );
+
+            // 여러 인코딩으로 변환 시도
+            for (Charset encoding : encodings) {
+                try {
+                    String decodedStr = new String(decodedBytes, encoding);
+                    System.out.println("Encoding (" + encoding.displayName() + "): " + decodedStr);
+                } catch (Exception e) {
+                    System.out.println("Encoding (" + encoding.displayName() + "): 디코딩 실패");
+                }
+            }
+//            String atchFileNm = "88ff5f6797fb4706b5ea035af8dc7204.hwp";
+//            base64Encoded = Base64.getEncoder().encodeToString(atchFileNm.getBytes(StandardCharsets.UTF_8));
+//            atchFileNm = URLEncoder.encode(base64Encoded, StandardCharsets.UTF_8);
+//            System.out.println("atchFileNm = " + atchFileNm);
+
+
+            String extraParam = ",1";  // 추가 인자
+            base64Encoded = Base64.getEncoder().encodeToString(extraParam.getBytes(StandardCharsets.UTF_8));
+            extraParam = URLEncoder.encode(base64Encoded, StandardCharsets.UTF_8);
+            System.out.println("extraParam = " + extraParam);
+
+            // ✅ **Base64 인코딩할 데이터 순서를 원래 요청과 동일하게 조정**
+            String urlEncodedData = String.join("",
+                    "a2MMYzianzw" +
+                            "ExorC2swMQwxC2sxMgwxYmNhYmMw",
+                    "ZTc2NzI0MDE3YjAzNGI0N2I2Zjc2OTE5Mw",
+                    "trMDUMMA",
+                    "tr" + atchFilePathNm,
+                    "tr" + orgnlAtchFileNm,
+                    "tr" + untyAtchFileNo + "" + extraParam
+            );
+
+            // **최종 요청 데이터**
+            String payloadData = "k00=" + urlEncodedData + "&X-CSRF-Token=";
+
+            System.out.println("payloadData = " + payloadData);
+
+            String cookies = "JSESSIONID=" + sessionId
+                    + "; WHATAP=x342cfbfle816r"
+                    + "; XTVID=A2501271422049643"
+                    + "; Path=/"
+                    + "; infoSysCd=%EC%A0%95010029"
+                    + "; _harry_fid=hh2122029691"
+                    + "; XTSID=A250222215618811067"
+                    + "; xloc=1194X834"
+                    + "; lastAccess=1740307145884";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://www.g2b.go.kr/fs/fsc/fsca/fileUpload.do"))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+                    .header("Referer", "https://www.g2b.go.kr/")
+                    .header("Cookie", cookies)
+                    .POST(HttpRequest.BodyPublishers.ofString(payloadData))
+                    .build();
+
+            HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+
+            if (response.statusCode() == 200) {
+                // 파일 다운로드
+                String filePath = orgnlAtchFileNm; // 저장할 파일명 설정
+                try (InputStream inputStream = response.body();
+                     OutputStream outputStream = Files.newOutputStream(Paths.get(filePath))) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, bytesRead);
+                    }
+                }
+                System.out.println("파일 다운로드 완료: " + filePath);
+            } else {
+                System.out.println("파일 다운로드 실패. 응답 코드: " + response.statusCode());
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * 발주 목록 > 사전규격 > 일반용역, 기술용역 > 검색어 결과 저장 process
