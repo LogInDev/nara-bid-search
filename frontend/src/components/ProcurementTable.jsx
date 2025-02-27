@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import axios from "axios";
+import { API_BASE_URL } from "../config";
+
 
 const ProcurementTable = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -46,6 +49,24 @@ const ProcurementTable = () => {
     setSearchTerms(searchTerms.filter((_, i) => i !== index));
   };
 
+
+  const handleSearch = async () => {
+    const requestData = {
+        categories: selectedCategories,
+        startDate: startDate? startDate.toISOString().split("T")[0] : null,
+        endDate: endDate? endDate.toISOString().split("T")[0] : null,
+        items: items,
+        searchTerms: searchTerms,
+      };
+
+        try {
+            const response = await axios.post(`${API_BASE_URL}/api/bids/search`, requestData);
+            console.log(response.data);
+        }
+        catch (error) {
+            console.error("Error searching bids:", error);
+        }
+    }
 
   return (
     <div className="search-outline">
@@ -93,34 +114,38 @@ const ProcurementTable = () => {
         {/* 세부 품목 & 검색어 입력 */}
         <div className="search-filters grid grid-cols-2 gap-4">
           {/* 세부 품목 */}
-          <div className="search-filters">
-            <label className="block text-sm font-medium">세부 품목</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={itemInput}
-                onChange={(e) => setItemInput(e.target.value)}
-                className="border p-2 rounded w-full"
-                placeholder="세부 품목 입력"
-              />
-              <button onClick={addItem} className="bg-blue-500 text-white px-4 py-2 rounded">
-                추가
-              </button>
+            <div className="search-result">
+            <div className="search-filters">
+                    <label className="block text-sm font-medium">세부 품목</label>
+                    <div className="flex gap-2">
+                    <input
+                        type="text"
+                        value={itemInput}
+                        onChange={(e) => setItemInput(e.target.value)}
+                        className="border p-2 rounded w-full"
+                        placeholder="세부 품목 입력"
+                    />
+                    <button onClick={addItem} className="bg-blue-500 text-white px-4 py-2 rounded">
+                        추가
+                    </button>
+                    </div>
+                </div>
+                <div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                    {items.map((item, index) => (
+                        <span key={index} className="bg-gray-200 p-2 rounded flex items-center">
+                        {item}
+                        <button
+                            onClick={() => removeItem(index)}
+                            className="ml-2 text-red-500 font-bold"
+                        >
+                            ×
+                        </button>
+                        </span>
+                    ))}
+                    </div>
+                </div>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {items.map((item, index) => (
-                <span key={index} className="bg-gray-200 p-2 rounded flex items-center">
-                  {item}
-                  <button
-                    onClick={() => removeItem(index)}
-                    className="ml-2 text-red-500 font-bold"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
 
           {/* 검색어 */}
           <div className="search-filters">
@@ -156,7 +181,8 @@ const ProcurementTable = () => {
         {/* 검색 버튼 */}
         <div className="h-24 flex justify-center items-center">
           <button style={{height: "150px", width: "100px"}}
- className="bg-blue-600 text-white text-lg px-8 py-4 rounded-lg shadow-md">
+ className="bg-blue-600 text-white text-lg px-8 py-4 rounded-lg shadow-md"
+ onClick={handleSearch}>
             검색
           </button>
         </div>

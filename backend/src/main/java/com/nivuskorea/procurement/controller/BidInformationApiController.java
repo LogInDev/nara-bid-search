@@ -2,6 +2,7 @@ package com.nivuskorea.procurement.controller;
 
 import com.nivuskorea.procurement.dto.BidInfoActiveDto;
 import com.nivuskorea.procurement.dto.BidInformationDto;
+import com.nivuskorea.procurement.dto.SearchRequest;
 import com.nivuskorea.procurement.service.BidInformationService;
 import com.nivuskorea.procurement.service.NaraBidAnnApiService;
 import com.nivuskorea.procurement.service.NaraProcurementApiService;
@@ -9,6 +10,7 @@ import com.nivuskorea.procurement.service.openApi.OpenApiProperties;
 import com.nivuskorea.procurement.service.openApi.OpenApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -33,13 +35,16 @@ public class BidInformationApiController {
         return all;
     }
 
-    @PostMapping("/defaultSearch")
-    public String getDefaultSearch() {
+    @PostMapping("/search")
+    public ResponseEntity<String> getSearch(@RequestBody SearchRequest request) {
+        log.info("Search request: {}", request);
         final OpenApiProperties openApiProperties = new OpenApiProperties();
         // 발주 > 사전규격 > 세부품목별 조회 - /getPublicPrcureThngInfoThngPPSSrch
         // 발주 > 사전규격 > 용역별 검색어 조회 - /getPublicPrcureThngInfoServcPPSSrch
         // 입찰공고 > 물품 > 세부품목별 조회 - /getBidPblancListInfoThngPPSSrch
-        openApiService.fetchData(openApiProperties.getProcurement_url(), openApiProperties.getBid_key(),)
+//        openApiService.fetchData(openApiProperties.getProcurement_url(), openApiProperties.getBid_key(),)
+
+        return ResponseEntity.ok("ok");
     }
 
 
@@ -48,9 +53,9 @@ public class BidInformationApiController {
 
 //        final String response = openApiService.fetchData().block();   // 동기방식
 //        System.out.println("response = " + response);
-        openApiService.fetchData().subscribe(response -> {
-            System.out.println("response = " + response);
-        });
+//        openApiService.fetchData().subscribe(response -> {
+//            System.out.println("response = " + response);
+//        });
 
 //        naraBidAnnApiService.bidAnnApi();
 //        naraProcurementApiService.keywordApi();

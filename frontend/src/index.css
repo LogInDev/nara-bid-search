@@ -114,12 +114,18 @@ tr:hover {
   width: 150px; /* 원하는 크기로 조절 */
 }
 
+.search-result {
+  display: flex;
+  gap: 10px;  /* 입력 필드 사이 간격 */
+  align-items: center;
+  justify-content: space-evenly;
+}
+
 .search-filters {
   display: flex;
   gap: 10px;  /* 입력 필드 사이 간격 */
   align-items: center;
   justify-content: space-evenly;
-
 }
 
 .search-filters input {
