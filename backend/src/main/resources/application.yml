@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 9291
 
 selenium:
   headless: false #화면 안 보이게는 true
