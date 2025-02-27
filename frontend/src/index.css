@@ -71,6 +71,7 @@ button:focus-visible {
 table {
   width: 100%;
   border-collapse: collapse;
+  overflow-x: auto; /* 가로 스크롤 추가 */
 }
 
 th, td {
@@ -90,4 +91,51 @@ tr:nth-child(even) {
 
 tr:hover {
   background-color: #f1f1f1;
+}
+
+
+/* ProcurementTable.css */
+.container {
+  width: 90%; /* 전체 너비를 90%로 설정 */
+  max-width: 1200px; /* 최대 너비 지정 */
+  margin: 0 auto; /* 가운데 정렬 */
+}
+.date-filters {
+  display: flex;
+  gap: 10px;  /* 입력 필드 사이 간격 */
+  align-items: center;
+  justify-content: flex-start;
+
+}
+
+.date-filters input {
+  padding: 8px;
+  font-size: 14px;
+  width: 150px; /* 원하는 크기로 조절 */
+}
+
+.search-filters {
+  display: flex;
+  gap: 10px;  /* 입력 필드 사이 간격 */
+  align-items: center;
+  justify-content: space-evenly;
+
+}
+
+.search-filters input {
+  padding: 8px;
+  font-size: 14px;
+  width: 150px; /* 원하는 크기로 조절 */
+}
+
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.search-outline {
+  display: flex;
+  gap: 10px;  /* 입력 필드 사이 간격 */
+  align-items: center;
+  justify-content: center;
+
 }

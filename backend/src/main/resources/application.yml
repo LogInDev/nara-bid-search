@@ -4,6 +4,13 @@ server:
 selenium:
   headless: false #화면 안 보이게는 true
 
+api:
+  open:
+    bid_url: "http://apis.data.go.kr/1230000/ad/BidPublicInfoService"
+    bid_key: "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw=="
+    procurement_url: "http://apis.data.go.kr/1230000/ao/HrcspSsstndrdInfoService"
+    procurement_key: "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw=="
+
 spring:
   datasource:
     url: ${DB_URL}

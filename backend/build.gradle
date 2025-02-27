@@ -44,6 +44,10 @@ repositories {
 		// HTML 한글 변환용
 		implementation 'org.apache.commons:commons-text:1.11.0'
 
+		// Open Api
+		implementation 'org.springframework.boot:spring-boot-starter-webflux:3.3.1'
+		implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.1'
+
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	}
