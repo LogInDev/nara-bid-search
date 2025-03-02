@@ -1,0 +1,295 @@
+.searchBox{
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    width: 100%;
+    min-height: 50vh;
+    margin-left: 10px;
+
+    gap:7px;
+
+    &__wrapBtn{
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        flex-direction: column;
+
+        width: 100px;
+        min-height: 50vh;
+
+        gap: 10px;
+    }
+    &__btn{
+        // width: 100%;
+        &__edit{
+            width: 100px;
+            border-radius: 8px;
+            &:hover{
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
+                transform: translateY(-2px); /* 입체감 */
+            }
+        }
+        &__default{
+            width: 100px;
+            border-radius: 8px;
+            &:hover{
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
+                transform: translateY(-2px); /* 입체감 */
+            }
+        }
+        &__search{
+            width: 100px;
+            height: 200px;
+            border-radius: 8px;
+            &:hover{
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
+                transform: translateY(-2px); /* 입체감 */
+            }
+        }
+        button{
+            border: none;
+            background-color: none;
+            cursor: pointer;
+            min-width: 70px;
+        }
+    }
+    &__detail{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+
+        // width: 100%;
+        gap: 10px;
+    }
+}
+
+.dateBox{
+    display: flex;
+    align-items: center;
+    justify-content:space-evenly;
+
+    margin-right: 5px;
+
+    width: 100%;
+    height: calc(100% / 5);
+
+    gap: 40px;
+
+    // 맨위에 달력 표시되어서 달력 뒤 부분이 클릭되지 않게
+    position: relative;
+    z-index: 10;
+
+    input{
+        border: none;
+
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
+        transform: translateY(-2px); /* 입체감 */
+
+    }
+
+    label{
+        margin-right: 15px;
+    }
+
+}
+
+// 사전규격 - 일반용역, 기술용역 > 검색어 입력
+.tdSearchBar{
+    vertical-align: middle; /* 텍스트를 세로 중앙 정렬 */
+}
+.searchBar{
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    width: 200px;
+    margin-left: 10px;
+    padding: 3px;
+
+    &:focus-within{
+        border-radius: 8px;
+        border: 1px solid main.$color-white-700;
+        background-color: main.$color-white-000;
+        box-shadow: 0px 0px 8px 0px rgba(21, 112, 239, 0.3);
+
+        .input{
+            color: main.$color-gray-800;
+        }
+    }
+    &__input{
+        outline:none;
+        border: none;
+
+        width: 100%;
+
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 17px;
+
+        color: main.$color-gray-500;
+    }
+    &__btn{
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        img{
+            width: 15px;
+            height: 15px;
+        }
+    }
+
+    // 추가된 검색어 목록
+    &__results{
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+
+        gap:3px;
+        width: 370px;
+        margin-left: 10px;
+        flex-wrap: wrap; /* 요소들이 넘치면 자동으로 다음 줄로 이동 */
+        gap: 8px; /* 태그 간격 조절 */
+        max-width: 600px; /* 컨테이너 최대 너비 제한 */
+
+
+
+        &__tag{
+
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            font-size: 15px;
+            height: 20px;
+            padding: 4px 8px 6px 8px;
+
+            height: 100%;
+
+            border-radius:4px;
+            background-color: main.$color-gray-100;
+            color: main.$color-gray-500;
+            img{
+                width: 15px;
+                height: 15px;
+                cursor: pointer;
+            }
+        }
+        
+    }
+}
+.resultBox{
+    height: 80px;
+    overflow-y: auto;
+}
+
+.wrapDetail{
+    min-width: 800px;
+    width: 800px;
+    overflow-x: auto;
+}
+
+.table{
+    min-width: 800px;
+    border-collapse: collapse;
+    table-layout: fixed; /* 테이블 레이아웃을 고정 */
+    
+    &__title{
+        min-width: 150px;
+        background-color: main.$color-gray-200;
+        text-align:left;
+        vertical-align: middle;
+
+        &__mid{
+            margin-left: 10px;
+            font-size: 12px;
+            font-weight: 400;
+        }
+    }
+    &__wrapMid{
+        background-color: main.$color-gray-700;
+        color: main.$color-white-000;
+    }
+    &__searchBar{
+        height: 40px;
+        text-align: left;
+    }
+    &__searchResult{
+        height: 80px;
+    }
+    &__checkResult{
+        height: 60px;
+    }
+}
+
+.checkBox {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+
+
+    &__btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100px;
+        padding: 4px 6px;
+        border-radius: 8px;
+        border: none;
+        background-color: main.$color-white-200;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s ease-in-out;
+        height: 25px;
+        color: main.$color-black-900;
+
+        &:hover{
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
+            transform: translateY(-2px); /* 입체감 */
+        }
+    }
+    &__selected{
+        background-color: main.$color-white-700!important;
+        color: white!important;
+    }
+}
+.resultMid{
+    height: 50px;
+    overflow-y: auto;
+    margin-top: 3px;
+
+    &__checkBox {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+
+
+        &__btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            padding: 4px 6px;
+            border-radius: 8px;
+            border: none;
+            background-color: main.$color-white-200;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease-in-out;
+            height: 20px;
+            color: main.$color-black-900;
+
+            &:hover{
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
+                transform: translateY(-2px); /* 입체감 */
+            }
+        }
+        &__selected{
+            background-color: main.$color-white-700!important;
+            color: white!important;
+        }
+    }
+}
+
+

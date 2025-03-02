@@ -10,5 +10,8 @@
 
 5. React Toast Popup 모듈 설치 : `npm install react-simple-toasts`
 
-6. React Table 라이브러리 AG Grid 모듈 설치 
-    -  `nnpm install ag-grid-community@latest ag-grid-react@latest`
+6. React Table 라이브러리 AG Grid 모듈 설치 : `nnpm install ag-grid-community@latest ag-grid-react@latest`
+
+7. 달력 사용을 위한 라이브러리 설치 
+    - `npm install react-datepicker`
+    - `npm install date-fns`
