@@ -1,18 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
+"../styles/ProcurementTable.css";
 
 
 const ProcurementTable = () => {
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [itemInput, setItemInput] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [items, setItems] = useState([]);
-  const [searchTerms, setSearchTerms] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]); // 검색 카테고리 선택 - 체크박스
+  const [startDate, setStartDate] = useState(null); // 조회 시작일
+  const [endDate, setEndDate] = useState(null); // 조회 종료일
+  const [itemInput, setItemInput] = useState("");   // 세부 품목 입력
+  const [searchInput, setSearchInput] = useState("");   // 검색어 입력
+  const [items, setItems] = useState([]);   // 입력된 세부 품목 목록
+  const [searchTerms, setSearchTerms] = useState([]);   // 입력된 검색어 목록
+  const [methodInput, setMethodInput] = useState([]);   // 계약 방법 선택
+  const [regionInput, setRegionInput] = useState([]);   // 제한 지역 선택
+  const [contractMethods, setContractMethods] = useState([]);   // 선택된 계약 방법 목록
+  const [restrictRegions, setRestrictRegions] = useState([]);   // 선제한 지역 목록
+  const [methodList, setMethodList] = useState([]);   // API로부터 받아온 계약 방법 목록
+  const [regionList, setRegionList] = useState([]);   // API로부터 받아온 제한 지역 목록
+
+  // 계약 방법 목록 가져오기    
+    useEffect(() => {
+        fetch(`${API_BASE_URL}/api/contract-methods`) // API로부터 계약 방법 목록 가져오기
+        .then((response) => response.json())
+        .then((data) => setMethodList(data))
+        .catch((error) => console.error("Error fetching contract methods:", error));
+    }, []);
+
+  
 
   // 체크박스 선택/해제
   const toggleCategory = (category) => {
@@ -39,6 +56,22 @@ const ProcurementTable = () => {
     }
   };
 
+  // 제한지역 추가
+  const addRestrictResion = () => {
+    if (regionInput.trim() !== "") {
+      setRestrictRegions([...restrictRegions, regionInput]);
+      setRegionInput("");
+    }
+  };
+
+  // 계약방법 추가
+  const addContractMethod = () => {
+    if (methodInput.trim() !== "") {
+      setContractMethods([...contractMethods, methodInput]);
+      setMethodInput("");
+    }
+  };
+
   // 세부 품목 삭제
   const removeItem = (index) => {
     setItems(items.filter((_, i) => i !== index));
@@ -47,6 +80,16 @@ const ProcurementTable = () => {
   // 검색어 삭제
   const removeSearchTerm = (index) => {
     setSearchTerms(searchTerms.filter((_, i) => i !== index));
+  };
+
+  // 제한지역 삭제
+  const removeRistrictRegion = (index) => {
+    setRestrictRegions(restrictRegions.filter((_, i) => i !== index));
+  };
+
+  // 계약방법 삭제
+  const removeContractMethod = (index) => {
+    setContractMethods(contractMethods.filter((_, i) => i !== index));
   };
 
 
@@ -70,27 +113,27 @@ const ProcurementTable = () => {
 
   return (
     <div className="search-outline">
-      <div className="p-4 border rounded-lg shadow-md w-full max-w-4xl mx-auto bg-white space-y-6">
+      <div className="space-y-6">
         {/* 체크박스 */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="">
           {["사전규격 - 물품", "사전규격 - 일반, 기술용역", "입찰공고 - 물품"].map(
             (category) => (
-              <label key={category} className="flex items-center space-x-2">
+              <label key={category} className="">
                 <input
                   type="checkbox"
                   checked={selectedCategories.includes(category)}
                   onChange={() => toggleCategory(category)}
                 />
-                <span style={{marginRight: "50px"}}>{category}</span>
+                <span>{category}</span>
               </label>
             )
           )}
         </div>
 
-        {/* 날짜 입력 */}
-        <div className="date-filters grid grid-cols-2 gap-4">
-          <div style={{marginRight: "71px"}}>
-            <label className="block text-sm font-medium">조회 시작일</label>
+        {/* 날짜 입력 & 제한지역 선택 */}
+        <div className="date-filters">
+          <div >
+            <label className="">조회 시작일</label>
             <DatePicker
               selected={startDate}
               onChange={setStartDate}
@@ -100,7 +143,7 @@ const ProcurementTable = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">조회 종료일</label>
+            <label >조회 종료일</label>
             <DatePicker
               selected={endDate}
               onChange={setEndDate}
@@ -111,35 +154,34 @@ const ProcurementTable = () => {
           </div>
         </div>
 
-        {/* 세부 품목 & 검색어 입력 */}
-        <div className="search-filters grid grid-cols-2 gap-4">
+        {/* 세부 품목 & 검색어 입력 & 계약방법 선택 */}
+        <div className="search-filters">
           {/* 세부 품목 */}
             <div className="search-result">
             <div className="search-filters">
-                    <label className="block text-sm font-medium">세부 품목</label>
-                    <div className="flex gap-2">
+                    <label className="">세부 품목</label>
+                    <div className="">
                     <input
                         type="text"
                         value={itemInput}
                         onChange={(e) => setItemInput(e.target.value)}
-                        className="border p-2 rounded w-full"
+                        className=""
                         placeholder="세부 품목 입력"
                     />
-                    <button onClick={addItem} className="bg-blue-500 text-white px-4 py-2 rounded">
+                    <button onClick={addItem} className="">
                         추가
                     </button>
                     </div>
                 </div>
                 <div>
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="">
                     {items.map((item, index) => (
-                        <span key={index} className="bg-gray-200 p-2 rounded flex items-center">
+                        <span key={index} className="">
                         {item}
                         <button
                             onClick={() => removeItem(index)}
-                            className="ml-2 text-red-500 font-bold"
+                            className=""
                         >
-                            ×
                         </button>
                         </span>
                     ))}
@@ -149,26 +191,57 @@ const ProcurementTable = () => {
 
           {/* 검색어 */}
           <div className="search-filters">
-            <label className="block text-sm font-medium">검색어</label>
-            <div className="flex gap-2">
+            <label className="">검색어</label>
+            <div className="">
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="border p-2 rounded w-full"
+                className=""
                 placeholder="검색어 입력"
               />
-              <button onClick={addSearchTerm} className="bg-blue-500 text-white px-4 py-2 rounded">
+              <button onClick={addSearchTerm} className="">
                 추가
               </button>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="">
               {searchTerms.map((term, index) => (
-                <span key={index} className="bg-gray-200 p-2 rounded flex items-center">
+                <span key={index} className="">
                   {term}
                   <button
                     onClick={() => removeSearchTerm(index)}
-                    className="ml-2 text-red-500 font-bold"
+                    className=""
+                  >
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* 계약방법 */}
+          <div className="search-filters">
+            <label className="">제한지역</label>
+            <div className="">
+              <select
+                value={methodInput}
+                onChange={(e) => setMethodInput(e.target.value)}
+                className=""
+              />
+                <option value="">제한지역 선택</option>
+                {methodList.map((method) => (
+                    <option key={method} value={method}>{method}</option>
+                ))}
+              <button onClick={addContractMethod} className="">
+                추가
+              </button>
+            </div>
+            <div className="">
+              {searchTerms.map((term, index) => (
+                <span key={index} className="">
+                  {term}
+                  <button
+                    onClick={() => removeContractMethod(index)}
+                    className=""
                   >
                   </button>
                 </span>
@@ -179,9 +252,9 @@ const ProcurementTable = () => {
 </div>
 <div>
         {/* 검색 버튼 */}
-        <div className="h-24 flex justify-center items-center">
+        <div className="">
           <button style={{height: "150px", width: "100px"}}
- className="bg-blue-600 text-white text-lg px-8 py-4 rounded-lg shadow-md"
+ className=""
  onClick={handleSearch}>
             검색
           </button>
