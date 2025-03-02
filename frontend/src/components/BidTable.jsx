@@ -49,39 +49,40 @@ const BidTable = () => {
 
   return (
     <div>
-    <h2>입찰 정보</h2>
-    <table {...getTableProps()} border="1">
-      <thead>
-        {headerGroups.map(headerGroup => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map(column => (
-              <th {...column.getHeaderProps(column.getSortByToggleProps())}>
-                {column.render("Header")}
-                {column.canSort && (
-                  <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
-                )}
-              </th>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row, index) => {
-          prepareRow(row);
-          return (
-            <tr {...row.getRowProps()}>
-              {row.cells.map((cell, cellIndex) => (
-                <td {...cell.getCellProps()}>
-                  {cellIndex === 0 ? index + 1 : cell.render("Cell")} {/* No 열은 index + 1 로 고정 */}
-                </td>
-                // <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
+      <h2>입찰 정보</h2>
+      <table {...getTableProps()} border="1">
+        <thead>
+          {headerGroups.map(headerGroup => (
+            <tr {...headerGroup.getHeaderGroupProps()}>
+              {headerGroup.headers.map(column => (
+                <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                  {column.render("Header")}
+                  {column.canSort && (
+                    <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
+                  )}
+                </th>
               ))}
             </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  </div>
+          ))}
+        </thead>
+        <tbody {...getTableBodyProps()}>
+          {rows.map((row, index) => {
+            prepareRow(row);
+            return (
+              <tr {...row.getRowProps()}>
+                {/* ✅ No 값은 항상 1부터 순서대로 부여 */}
+                <td>{index + 1}</td>
+                {row.cells.map((cell, cellIndex) => (
+                  cellIndex !== 0 && ( // 첫 번째 열(No)은 이미 추가했으므로 제외
+                    <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
+                  )
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 };
 

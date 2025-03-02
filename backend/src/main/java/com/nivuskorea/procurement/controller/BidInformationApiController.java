@@ -31,7 +31,7 @@ public class BidInformationApiController {
     @GetMapping("/all")
     public List<BidInfoActiveDto> getAllBids(){
         List<BidInfoActiveDto> all = bidInformationService.getActiveBids();
-//        log.info("/all 조회 결과 : {}",all.toString());
+        log.info("/all 조회 결과 : {}",all.toString());
         return all;
     }
 
@@ -51,15 +51,9 @@ public class BidInformationApiController {
     @GetMapping("/test")
     public String testApi(){
 
-//        final String response = openApiService.fetchData().block();   // 동기방식
-//        System.out.println("response = " + response);
-//        openApiService.fetchData().subscribe(response -> {
-//            System.out.println("response = " + response);
-//        });
-
-//        naraBidAnnApiService.bidAnnApi();
-//        naraProcurementApiService.keywordApi();
-//        naraProcurementApiService.procurementApi();
+        naraBidAnnApiService.bidAnnApi();
+        naraProcurementApiService.keywordApi();
+        naraProcurementApiService.procurementApi();
 
         return "testApi - ok";
     }
