@@ -17,7 +17,7 @@ public class SearchAndSaveScheduler {
     private final NaraBidAnnApiService naraBidAnnApiService;
     private final NaraProcurementApiService naraProcurementApiService;
 
-    @Scheduled(cron = "0 0 3 * * ?")
+//    @Scheduled(cron = "0 0 3 * * ?")
     public void searchAndSave() {
         try {
             log.info("Scheduled task started at : {}", LocalDateTime.now());
