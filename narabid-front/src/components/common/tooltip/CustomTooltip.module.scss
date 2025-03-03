@@ -1,0 +1,14 @@
+.tooltip {
+  font-size: 14px;
+  font-weight: bold;
+  font-family: "Arial", sans-serif;
+  color: white;
+  background-color: black;
+  padding: 8px;
+  border-radius: 5px;
+  box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.5), 
+              inset 0px 0px 5px rgba(255, 255, 255, 0.2); /* 외부 그림자 + 내부 광택 효과 */
+  max-width: 220px; /* 최대 너비 */
+  word-wrap: break-word;
+  text-align: center;
+}

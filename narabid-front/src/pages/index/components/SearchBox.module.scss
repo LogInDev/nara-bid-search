@@ -4,6 +4,7 @@
     justify-content: flex-start;
 
     width: 100%;
+    // margin: 0 auto;
     min-height: 50vh;
     margin-left: 10px;
 
@@ -136,8 +137,9 @@
         cursor: pointer;
         padding: 0;
         img{
-            width: 15px;
-            height: 15px;
+            width: 17px;
+            height: 17px;
+            margin-top: 2px;
         }
     }
 
@@ -170,10 +172,19 @@
             border-radius:4px;
             background-color: main.$color-gray-100;
             color: main.$color-gray-500;
-            img{
-                width: 15px;
-                height: 15px;
+
+            gap:2px;
+            button{
+                background: none;
+                border: none;
                 cursor: pointer;
+                padding: 0;
+            }
+            img{
+                width: 17px;
+                height: 17px;
+                cursor: pointer;
+                margin-top: 3px;
             }
         }
         
@@ -198,7 +209,7 @@
     &__title{
         min-width: 150px;
         background-color: main.$color-gray-200;
-        text-align:left;
+        text-align:center;
         vertical-align: middle;
 
         &__mid{

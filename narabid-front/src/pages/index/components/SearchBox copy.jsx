@@ -8,12 +8,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useBidInfo } from '@/store/apiContext';
 
 function SearchBox() {
-    const today = new Date();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-    const [startDate, setStartDate] = useState(oneMonthAgo);
-    const [endDate, setEndDate] = useState(today);
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
     const [searchInput, setSearchInput] = useState("");
     const [proItems, setProItems] = useState([]);
     const [bidItems, setBidItems] = useState([]);
@@ -31,7 +27,7 @@ function SearchBox() {
         "전국(제한없음)": "00"
     }
     // 상태관리 - bidInfo
-    const { setBidInfos, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, setIsLoading } = useBidInfo();
+    const { setBidInfos, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY } = useBidInfo();
 
     // 날짜 포맷 yyyyMMdd 형식으로 변환하는 함수
     const formatDate = (date, isEnd = null) => {
@@ -90,7 +86,6 @@ function SearchBox() {
 
     // 서버로 검색 객체 전송
     const handleSearch = async () => {
-        setIsLoading(true); // 로딩 시작
         // 날짜 포맷 수정
         const formattedStartDate = formatDate(startDate);
         const formattedEndDate = formatDate(endDate);
@@ -118,102 +113,91 @@ function SearchBox() {
 
         try {
             // OpenAPI 용
-            // 🔹 1. 발주 > 사전규격 > 물품 조회 요청
-            const productRequests = proItems.map((item) => {
-                return axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoThngPPSSrch`, {
-                    params: {
-                        serviceKey: PRE_API_KEY,
-                        pageNo: "1",
-                        numOfRows: "100",
-                        type: "json",
-                        inqryDiv: "1",
-                        inqryBgnDt: formattedStartDateApi,
-                        inqryEndDt: formattedEndDateApi,
-                        dtilPrdctClsfcNo: item
-                    }
-                });
+            // 발주 > 사전규격 > 물품 조회
+            const openApiRequests = proItems.map((item) => {
+                const openApiParams = {
+                    serviceKey: PRE_API_KEY,
+                    pageNo: "1",  // 페이지 번호
+                    numOfRows: "30",  // 한 페이지 결과 수
+                    type: "json", // 타입
+                    inqryDiv: "1",   // 조회구분 - 사전규격(1. 등록일시 || 2. 사전규격등록번호 || 3. 변경일시) || 입찰공고(1. 공고게시일 || 2. 개찰일시)
+                    inqryBgnDt: formattedStartDateApi,  // 조회 시작일
+                    inqryEndDt: formattedEndDateApi,    // 조회 종료일
+                    dtilPrdctClsfcNo: item   // 세부 품명
+                };
+
+                // 개별 GET 요청 생성
+                return axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoThngPPSSrch`, { params: openApiParams });
             });
 
-            // 🔹 2. 발주 > 사전규격 > 용역 - 키워드 조회 요청
-            const serviceRequests = searchTerms.map((item) => {
-                return axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoServcPPSSrch`, {
-                    params: {
-                        serviceKey: PRE_API_KEY,
-                        pageNo: "1",
-                        numOfRows: "100",
-                        type: "json",
-                        inqryDiv: "1",
-                        inqryBgnDt: formattedStartDateApi,
-                        inqryEndDt: formattedEndDateApi,
-                        prdctClsfcNoNm: item
-                    }
-                });
-            });
+            // 발주 > 사전규격 > 용역 - 키워드 조회
+            // const openApiRequests = searchTerms.map((item) => {
+            //     const openApiParams = {
+            //         serviceKey: PRE_API_KEY,
+            //         pageNo: "1",  // 페이지 번호
+            //         numOfRows: "30",  // 한 페이지 결과 수
+            //         type: "json", // 타입
+            //         inqryDiv: "1",   // 조회구분 - 사전규격(1. 등록일시 || 2. 사전규격등록번호 || 3. 변경일시) || 입찰공고(1. 공고게시일 || 2. 개찰일시)
+            //         inqryBgnDt: formattedStartDateApi,  // 조회 시작일
+            //         inqryEndDt: formattedEndDateApi,    // 조회 종료일
+            //         prdctClsfcNoNm: item        // 키워드 
+            //     };
 
-            // 🔹 3. 입찰공고 > 물품(세부품명) 조회 요청
-            const bidRequests = bidRegions.flatMap(region =>
-                bidItems.map(item => {
-                    return axios.get(`${BID_API_URL}/getBidPblancListInfoThngPPSSrch`, {
-                        params: {
-                            serviceKey: BID_API_KEY,
-                            pageNo: "1",
-                            numOfRows: "100",
-                            type: "json",
-                            inqryDiv: "1",
-                            inqryBgnDt: formattedStartDateApi,
-                            inqryEndDt: formattedEndDateApi,
-                            prtcptLmtRgnCd: region,
-                            dtilPrdctClsfcNo: item
-                        }
-                    });
-                })
-            );
+            //     // 개별 GET 요청 생성
+            //     return axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoServcPPSSrch`, { params: openApiParams });
+            // });
+            //  모든 요청을 병렬로 실행
+            const res = await Promise.all(openApiRequests);
 
-            // 🔹 모든 요청을 병렬 실행
-            const [productResponses, serviceResponses, bidResponses] = await Promise.all([
-                Promise.all(productRequests),
-                Promise.all(serviceRequests),
-                Promise.all(bidRequests)
-            ]);
+            // 응답 처리
+            console.log(res);
 
-            console.log("사전규격(물품) 응답:", productResponses);
-            console.log("사전규격(용역) 응답:", serviceResponses);
-            console.log("입찰공고 응답:", bidResponses);
-
-            // 🔹 사전규격(물품, 용역) 데이터에 구분값 추가
-            const productResults = productResponses.flatMap(response =>
-                (response?.data?.response?.body?.items ?? []).map(item => ({
-                    ...item,
-                    type: 2 // ✅ 사전규격 - 물품
-                }))
-            );
-
-            const serviceResults = serviceResponses.flatMap(response =>
-                (response?.data?.response?.body?.items ?? []).map(item => ({
-                    ...item,
-                    type: 1 // ✅ 사전규격 - 용역
-                }))
-            );
-
-            // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
-            const bidResults = bidResponses
-                .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
-                .filter(item => bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
-                .map(item => ({
-                    ...item,
-                    type: 3 // ✅ 입찰공고 - 물품
-                }));
-            // 🔹 모든 데이터를 합쳐서 상태 업데이트
-            const allResults = [...productResults, ...serviceResults, ...bidResults];
-
-            // 상태 업데이트
+            const allResults = res
+                .flatMap(response => response?.data?.response?.body?.items ?? []); // 모든 응답 데이터를 합침
             setBidInfos(allResults);
-            console.log("병렬 처리된 결과:", allResults);
+            console.log(allResults)
+
+
+
+            // 입찰공고 > 물품(세부품명) 조회
+            // const openApiRequests = bidRegions.flatMap(region =>
+            //     bidItems.map(item => {
+            //         return axios.get(`${BID_API_URL}/getBidPblancListInfoThngPPSSrch`, {
+            //             params: {
+            //                 serviceKey: BID_API_KEY,
+            //                 pageNo: "1",  // 페이지 번호
+            //                 numOfRows: "30",  // 한 페이지 결과 수
+            //                 type: "json", // 타입
+            //                 inqryDiv: "1",   // 조회구분 - 사전규격(1. 등록일시 || 2. 사전규격등록번호 || 3. 변경일시) || 입찰공고(1. 공고게시일 || 2. 개찰일시)
+            //                 inqryBgnDt: formattedStartDateApi,  // 조회 시작일
+            //                 inqryEndDt: formattedEndDateApi,    // 조회 종료일
+            //                 prtcptLmtRgnCd: region,        // 참가제한지역 코드 (지역)
+            //                 dtilPrdctClsfcNo: item         // 세부품명번호 (품명)
+            //             }
+            //         });
+            //     })
+            // );
+            // cntrctCnclsMthdNm : 계약체결방법명 - 일반경쟁 || 제한경쟁 || 지명경쟁 || 수의계약
+            // bidNtceDtlUrl : 입찰공고 상세 URL
+            // ntceKindNm : 공고 상태 - '등록공고' 상태만 유효(취소공고, 변경공고 X)
+
+            // 모든 요청을 병렬로 실행
+            // const res = await Promise.all(openApiRequests);
+
+            // // 응답 처리
+            // console.log("전체 응답:", res);
+
+            // // 모든 응답 데이터 추출
+            // const allResults = res
+            //     .flatMap(response => response?.data?.response?.body?.items ?? [])   // items 리스트 추출
+            //     .filter(item => item.ntceKindNm === '등록공고')
+            //     .filter(item => bidMethods.includes(item.cntrctCnclsMthdNm)); // bidMethods에 있는 값만 필터링
+
+            // // 상태 업데이트
+            // setBidInfos(allResults);
+            // console.log("병렬 처리된 결과:", allResults);
         } catch (error) {
             console.error('검색 요청 실패', error);
-        } finally {
-            setIsLoading(false);
         }
 
     }
