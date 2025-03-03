@@ -231,6 +231,7 @@
     }
     &__checkResult{
         height: 60px;
+        padding: 3px;
     }
 }
 
@@ -288,7 +289,7 @@
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s ease-in-out;
-            height: 20px;
+            height: 25px;
             color: main.$color-black-900;
 
             &:hover{

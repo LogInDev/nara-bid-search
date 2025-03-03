@@ -40,7 +40,8 @@ const MyTable = () => {
       const results = [];
 
       // 파일 URL 목록 추출
-      const fileUrls = [item.specDocFileUrl1, item.specDocFileUrl2, item.specDocFileUrl3, item.specDocFileUrl4, item.specDocFileUrl5].filter(url => url);
+      const fileUrls = [item.specDocFileUrl1, item.specDocFileUrl2, item.specDocFileUrl3, item.specDocFileUrl4, item.specDocFileUrl5, item.specDocFileUrl6, item.specDocFileUrl7, item.specDocFileUrl8, item.specDocFileUrl9, item.specDocFileUrl10].filter(url => url);
+      const preFileUrls = [item.specDocFileUrl1, item.specDocFileUrl2, item.specDocFileUrl3, item.specDocFileUrl4, item.specDocFileUrl5].filter(url => url);
 
       // 🔹 입찰공고 데이터 추가 - type : 3
       if (item.type === 3) {
@@ -72,6 +73,17 @@ const MyTable = () => {
 
       // 🔹 사전규격 - 물품 데이터 추가 - type : 2
       if (item.type === 2) {
+        const fileList = [];
+        for (let i = 1; i <= 5; i++) {
+          const fileName = `첨부파일${i}`;
+          const fileUrl = item[`specDocFileUrl${i}`];
+
+          if (fileName && fileName.trim() !== "" && fileUrl && fileUrl.trim() !== "") {
+            fileList.push({ name: fileName, url: fileUrl });
+          }
+        }
+        console.log(fileList);
+
         results.push({
           no: index + 1,
           category: item.bsnsDivNm,
@@ -83,12 +95,21 @@ const MyTable = () => {
           announcementDate: item.rgstDt,
           deadline: '',
           contractMethod: '',
-          fileUrl: item.specDocFileUrl1
+          // fileList
         });
       }
 
       // 🔹 사전규격 - 용역 데이터 추가 - type : 1
       if (item.type === 1) {
+        const fileList = [];
+        for (let i = 1; i <= 5; i++) {
+          const fileName = `첨부파일${i}`;
+          const fileUrl = item[`specDocFileUrl${i}`];
+
+          if (fileName && fileName.trim() !== "" && fileUrl && fileUrl.trim() !== "") {
+            fileList.push({ name: fileName, url: fileUrl });
+          }
+        }
         results.push({
           no: index + 1,
           category: item.bsnsDivNm,
@@ -100,7 +121,7 @@ const MyTable = () => {
           announcementDate: item.rgstDt,
           deadline: '',
           contractMethod: '',
-          fileUrl: item.specDocFileUrl1
+          // fileList
         });
       }
 
@@ -181,7 +202,7 @@ const MyTable = () => {
     { headerName: "마감일", field: "deadline", width: 120, sortable: true, filter: "agDateColumnFilter" },
     { headerName: "계약방법", field: "contractMethod", width: 100, sortable: true, filter: true },
     {
-      headerName: "첨부파일", field: "fileUrl", sortable: true, width: 200, hide: true, // 엑셀에서 제외할 필드
+      headerName: "첨부파일", field: "fileUrl", sortable: true, width: 200,
       cellRenderer: (params) => {
         if (!params.data.fileList || params.data.fileList.length === 0) return null;
 
@@ -229,7 +250,7 @@ const MyTable = () => {
   const gridOptions = {
     pagination: true,
     paginationPageSize: 30,
-    paginationPageSizeSelector: [10, 30, 50, 100],
+    // paginationAutoPageSize: false, // ✅ 필요에 따라 자동 페이지 크기 사용 여부 설정
   };
 
   // 📌 엑셀 다운로드 함수

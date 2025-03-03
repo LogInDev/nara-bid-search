@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import styles from './SearchBox.module.scss'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// import { API_BASE_URL } from '../../../../config';
 import { useBidInfo } from '@/store/apiContext';
 
 function SearchBox() {
     const today = new Date();
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
+    // 상태관리 - bidInfo
+    const { setBidInfos, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, setIsLoading, categories } = useBidInfo();
+    // 상세 검색
     const [startDate, setStartDate] = useState(oneMonthAgo);
     const [endDate, setEndDate] = useState(today);
     const [searchInput, setSearchInput] = useState("");
@@ -20,18 +21,47 @@ function SearchBox() {
     const [bidRegions, setBidRegions] = useState([]);
     const [bidMethods, setBidMethods] = useState([]);
     const [searchTerms, setSearchTerms] = useState([]);
-    // 상세 조건 목록 mapping
-    const detailCategoryMap = {
+    //카테고리
+    const [preDetailCategory, setPreDetailCategory] = useState([{
         "프로세스제어반": "4111249801",
         "계장제어장치": "3912118901",
         "유량계": "4111250101",
-    };
-    const regionCategoryMap = {
+    }]);
+    const [bidDetailCategory, setBidDetailCategory] = useState([{
+        "프로세스제어반": "4111249801",
+        "계장제어장치": "3912118901",
+        "유량계": "4111250101",
+    }]);
+    const [regionCategory, setRegionCategory] = useState([{
         "인천광역시": "28",
         "전국(제한없음)": "00"
-    }
-    // 상태관리 - bidInfo
-    const { setBidInfos, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, setIsLoading } = useBidInfo();
+    }]);
+    const [bidMethodCategory, setBidMethodCategory] = useState(["일반경쟁", "제한경쟁"]);
+
+    useEffect(() => {
+
+        if (categories.length !== 0) {
+            console.log(categories.preDetailProducts);
+            setPreDetailCategory((categories.preDetailProducts || []).reduce((acc, item) => {
+                const [key, value] = item.split(":");
+                acc[key] = value;
+                return acc;
+            }, {})
+            );
+            setBidDetailCategory((categories.bidDetailProducts || []).reduce((acc, item) => {
+                const [key, value] = item.split(":")
+                acc[key] = value;
+                return acc;
+            }, {}));
+            setRegionCategory((categories.restrictRegions || []).reduce((acc, item) => {
+                const [key, value] = item.split(":")
+                acc[key] = value;
+                return acc;
+            }, {}));
+            setBidMethodCategory(categories.contractMethods || []);
+            setSearchTerms(categories.keywords || []);
+        }
+    }, [categories]);
 
     // 날짜 포맷 yyyyMMdd 형식으로 변환하는 함수
     const formatDate = (date, isEnd = null) => {
@@ -87,6 +117,10 @@ function SearchBox() {
         else if (text == 'bidRegion') setBidRegions(bidRegions.filter((_, i) => i !== index));
         else if (text == 'bidMethod') setBidMethods(bidMethods.filter((_, i) => i !== index));
     };
+
+    // 기본 검색 조건 적용
+    const handleDetail = () => {
+    }
 
     // 서버로 검색 객체 전송
     const handleSearch = async () => {
@@ -269,7 +303,7 @@ function SearchBox() {
                                     <div className={styles.resultBox}>
                                         <div className={styles.searchBar__results}>
                                             {/* 검색어에 추가 결과 표시부분 */}
-                                            {searchTerms.map((term, index) => (
+                                            {searchTerms && searchTerms.map((term, index) => (
                                                 <div key={index} className={styles.searchBar__results__tag}>
                                                     {term}
                                                     <button className={styles.searchBar__search__btn}
@@ -294,13 +328,13 @@ function SearchBox() {
                                 <td rowSpan={2} colSpan={2} className={styles.table__checkResult}>
                                     <div className={styles.resultBox}>
                                         <div className={styles.checkBox}>
-                                            {Object.keys(detailCategoryMap).map((category) => (
+                                            {Object.entries(preDetailCategory).map(([key, value]) => (
                                                 <button
-                                                    key={category}
-                                                    className={`${styles.checkBox__btn} ${proItems.includes(detailCategoryMap[category]) ? styles.checkBox__selected : styles.checkBox__btn}`}
-                                                    onClick={() => addProItem(detailCategoryMap[category])}
+                                                    key={value}
+                                                    className={`${styles.checkBox__btn} ${proItems.includes(value) ? styles.checkBox__selected : styles.checkBox__btn}`}
+                                                    onClick={() => addProItem(value)}
                                                 >
-                                                    {category}
+                                                    {key}
                                                 </button>
                                             ))}
                                         </div>
@@ -322,13 +356,13 @@ function SearchBox() {
                                 <td rowSpan={3}>
                                     <div className={styles.resultBox}>
                                         <div className={styles.checkBox}>
-                                            {Object.keys(detailCategoryMap).map((category) => (
+                                            {Object.entries(bidDetailCategory).map(([key, value]) => (
                                                 <button
-                                                    key={category}
-                                                    className={`${styles.checkBox__btn} ${bidItems.includes(detailCategoryMap[category]) ? styles.checkBox__selected : styles.checkBox__btn}`}
-                                                    onClick={() => addBidItem(detailCategoryMap[category])}
+                                                    key={key}
+                                                    className={`${styles.checkBox__btn} ${bidItems.includes(value) ? styles.checkBox__selected : styles.checkBox__btn}`}
+                                                    onClick={() => addBidItem(value)}
                                                 >
-                                                    {category}
+                                                    {key}
                                                 </button>
                                             ))}
                                         </div>
@@ -337,15 +371,17 @@ function SearchBox() {
                                 <td>
                                     <div className={styles.resultMid}>
                                         <div className={styles.resultMid__checkBox}>
-                                            {Object.keys(regionCategoryMap).map((category) => (
-                                                <button
-                                                    key={category}
-                                                    className={`${styles.resultMid__checkBox__btn} ${bidRegions.includes(regionCategoryMap[category]) ? styles.resultMid__checkBox__selected : styles.resultMid__checkBox__btn}`}
-                                                    onClick={() => addBidRegion(regionCategoryMap[category])}
-                                                >
-                                                    {category}
-                                                </button>
-                                            ))}
+
+                                            {
+                                                Object.entries(regionCategory).map(([key, value]) => (
+                                                    <button
+                                                        key={key}
+                                                        className={`${styles.resultMid__checkBox__btn} ${bidRegions.includes(value) ? styles.resultMid__checkBox__selected : styles.resultMid__checkBox__btn}`}
+                                                        onClick={() => addBidRegion(value)}
+                                                    >
+                                                        {key}
+                                                    </button>
+                                                ))}
                                         </div>
                                     </div>
                                 </td>
@@ -359,13 +395,14 @@ function SearchBox() {
                                 <td>
                                     <div className={styles.resultMid}>
                                         <div className={styles.resultMid__checkBox}>
-                                            {["일반경쟁", "제한경쟁"].map((category) => (
+                                            {bidMethodCategory.map((category) => (
                                                 <button
                                                     key={category}
                                                     className={`${styles.resultMid__checkBox__btn} ${bidMethods.includes(category) ? styles.resultMid__checkBox__selected : styles.resultMid__checkBox__btn}`}
                                                     onClick={() => addBidMethod(category)}
                                                 >
                                                     {category}
+
                                                 </button>
                                             ))}
                                         </div>
@@ -380,11 +417,11 @@ function SearchBox() {
                 <div className={styles.searchBox__wrapBtn}>
                     {/* 버튼 생성 */}
                     <button className={styles.searchBox__btn__edit}>기본 검색 <br />조건으로 설정</button>
-                    <button className={styles.searchBox__btn__default}>기본 검색 조건 <br />적용</button>
+                    <button className={styles.searchBox__btn__default} onClick={handleDetail}>기본 검색 조건 <br />적용</button>
                     <button className={styles.searchBox__btn__search} onClick={handleSearch}>검색</button>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 
