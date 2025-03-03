@@ -9,7 +9,13 @@ import java.util.Optional;
 
 public interface ProjectSearchKeywordsRepository extends JpaRepository<ProjectSearchKeyword, Long> {
 
-    List<ProjectSearchKeyword> findByBidType(BidType bidType);
+    List<ProjectSearchKeyword> findByBidTypeOrderByIdDesc(BidType bidType);
+    List<ProjectSearchKeyword> findByBidTypeAndIsUsedTrueOrderByIdDesc(BidType bidType);
 
     Optional<ProjectSearchKeyword> findById(Long id);
+
+    // keyword로 찾기
+    Optional<ProjectSearchKeyword> findBySearchKeyword(String keyword);
+
+    List<ProjectSearchKeyword> findByIsUsedTrueOrderByIdDesc();
 }

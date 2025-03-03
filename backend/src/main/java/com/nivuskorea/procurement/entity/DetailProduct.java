@@ -2,12 +2,14 @@ package com.nivuskorea.procurement.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
+@ToString
 @Table(name = "detail_products", schema = "procurement")
 public class DetailProduct extends BaseEntity{
 
@@ -40,5 +42,9 @@ public class DetailProduct extends BaseEntity{
         this.itemNumber = itemNumber;
         this.itemName = itemName;
         this.isUsed = isUsed;
+    }
+
+    public void updateIsUsed(Boolean isUsed) {
+        this.isUsed = isUsed; // 엔티티에서만 사용될 메서드로 상태 변경
     }
 }

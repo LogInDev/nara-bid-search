@@ -2,6 +2,7 @@ package com.nivuskorea.procurement.controller;
 
 import com.nivuskorea.procurement.dto.*;
 import com.nivuskorea.procurement.service.BidInformationService;
+import com.nivuskorea.procurement.service.CategoryService;
 import com.nivuskorea.procurement.service.NaraBidAnnApiService;
 import com.nivuskorea.procurement.service.NaraProcurementApiService;
 import com.nivuskorea.procurement.service.openApi.OpenApiService;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/bids")
@@ -23,6 +25,7 @@ public class BidInformationApiController {
     private final NaraProcurementApiService naraProcurementApiService;
     private final NaraBidAnnApiService naraBidAnnApiService;
     private final OpenApiService openApiService;
+    private final CategoryService categoryService;
 
     @GetMapping("/all")
     public List<BidInfoActiveDTO> getAllBids(){
@@ -30,6 +33,40 @@ public class BidInformationApiController {
         log.info("/all 조회 결과 : {}",all.toString());
         return all;
     }
+
+    /**
+     * 카테고리 목록 형성
+     * @param types 1: 사전규격-용역 || 2. 사전규격-물품 || 3. 입찰공고-물품
+     * @return ResponseEntity<CategoryDTO>
+     */
+    @PostMapping("/category")
+    public ResponseEntity<CategoryDTO> getCategory(@RequestBody Set<String> types) {
+        log.info("type : {}",types);
+        return ResponseEntity.ok(categoryService.getAllCatogory(types));
+    }
+
+    /**
+     * 기본 검색 조건 수정
+     * @param categoryDTO 선택된 기본 검색조건
+     * @return 응답상태
+     */
+    @PostMapping("/updateCategory")
+    public ResponseEntity<String> updateCategory(@RequestBody CategoryDTO categoryDTO) {
+        log.info("categoryDTO : {}",categoryDTO);
+        return ResponseEntity.ok(categoryService.updateCategory(categoryDTO));
+    }
+
+    /**
+     * 기본 검색 조건에 설정된 카테고리
+     * @return CategoryDTO
+     */
+    @GetMapping("/selectedCategory")
+    public ResponseEntity<CategoryDTO> selectedCategory() {
+        CategoryDTO categoryDTO = categoryService.selectedCategory();
+        return ResponseEntity.ok(categoryDTO);
+    }
+
+
 
     @PostMapping("/search")
     public ResponseEntity<List<BidInformationDTO>> getSearch(@RequestBody SearchRequestDTO request) {

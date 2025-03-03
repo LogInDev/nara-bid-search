@@ -14,6 +14,11 @@ public enum Contract {
 
     private final String description;
 
+    public String getDescription() {
+        return description;
+    }
+
+//한글 -> 영어
     public static Contract fromString(String text) {
         return Arrays.stream(Contract.values())
                 .filter(contract -> contract.description.equals(text))
