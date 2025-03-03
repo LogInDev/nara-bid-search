@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import styles from './SearchBox.module.scss'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import toast, { toastConfig } from 'react-simple-toasts'
+import 'react-simple-toasts/dist/theme/dark.css'
+
+toastConfig({ theme: 'dark' });
 
 import { useBidInfo } from '@/store/apiContext';
 
@@ -10,8 +14,9 @@ function SearchBox() {
     const today = new Date();
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    oneMonthAgo.setDate(oneMonthAgo.getDate() + 1);
     // 상태관리 - bidInfo
-    const { setBidInfos, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, setIsLoading, categories } = useBidInfo();
+    const { setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, setIsLoading, categories, setCategories } = useBidInfo();
     // 상세 검색
     const [startDate, setStartDate] = useState(oneMonthAgo);
     const [endDate, setEndDate] = useState(today);
@@ -38,10 +43,12 @@ function SearchBox() {
     }]);
     const [bidMethodCategory, setBidMethodCategory] = useState(["일반경쟁", "제한경쟁"]);
 
+    const isInitialized = useRef(false); // 처음 실행 여부 추적
+    const isSearched = useRef(false); // handleSearch가 실행되었는지 여부
+
     useEffect(() => {
 
         if (categories.length !== 0) {
-            console.log(categories.preDetailProducts);
             setPreDetailCategory((categories.preDetailProducts || []).reduce((acc, item) => {
                 const [key, value] = item.split(":");
                 acc[key] = value;
@@ -60,8 +67,23 @@ function SearchBox() {
             }, {}));
             setBidMethodCategory(categories.contractMethods || []);
             setSearchTerms(categories.keywords || []);
+
+            const fetchAndSearch = async () => {
+                await applyDefault(); // ✅ applyDefault() 완료될 때까지 대기
+                isInitialized.current = true; // ✅ applyDefault() 실행 완료 표시
+            };
+
+            fetchAndSearch();
+
         }
     }, [categories]);
+
+    useEffect(() => {
+        if (isInitialized.current && !isSearched.current) {
+            handleSearch(); // ✅ 한 번만 실행
+            isSearched.current = true; // ✅ 이후 실행 방지
+        }
+    }, [isInitialized.current]);
 
     // 날짜 포맷 yyyyMMdd 형식으로 변환하는 함수
     const formatDate = (date, isEnd = null) => {
@@ -111,15 +133,60 @@ function SearchBox() {
 
     // 검색어 삭제
     const removeSearchTerm = (text, index) => {
-        if (text == 'terms') setSearchTerms(searchTerms.filter((_, i) => i !== index));
+        // if (text == 'terms') setSearchTerms(searchTerms.filter((_, i) => i !== index));
+        if (text === 'terms') {
+            setSearchTerms(prevTerms => prevTerms.filter((_, i) => i !== index));
+        }
         else if (text == 'proItem') setProItems(proItems.filter((_, i) => i !== index));
         else if (text == 'bidItem') setBidItems(bidItems.filter((_, i) => i !== index));
         else if (text == 'bidRegion') setBidRegions(bidRegions.filter((_, i) => i !== index));
         else if (text == 'bidMethod') setBidMethods(bidMethods.filter((_, i) => i !== index));
     };
 
-    // 기본 검색 조건 적용
-    const handleDetail = () => {
+    // 기본 검색 조건 설정
+    const handleDetail = async () => {
+        const mappedBidRegions = bidRegions.map((item) => {
+            const matchdRegion = Object.keys(regionCategory).find(
+                (key) => regionCategory[key] === item
+            );
+            return matchdRegion;
+        })
+        const reqData = {
+            "keywords": searchTerms,
+            "bidDetailProducts": bidItems,
+            "preDetailProducts": proItems,
+            "restrictRegions": mappedBidRegions,
+            "contractMethods": bidMethods,
+        }
+
+        try {
+
+            const response = await axios.post(`${BASE_API_URL}/api/bids/updateCategory`, reqData);
+        } catch (error) {
+            console.error('기본 검색 조건 적용 실패', error);
+        } finally {
+            alert('기본 검색 조건이 변경되었습니다. 👍');
+        }
+    }
+
+    // 기본 검색조건 적용
+    const applyDefault = async () => {
+
+        try {
+
+            const response = await axios.get(`${BASE_API_URL}/api/bids/selectedCategory`);
+            const resData = response.data;
+
+            setSearchTerms(resData.keywords);
+            setBidItems(resData.bidDetailProducts.map(item => item.split(":")[1]));
+            setProItems(resData.preDetailProducts.map(item => item.split(":")[1]));
+            setBidRegions(resData.restrictRegions.map(item => item.split(":")[1]));
+            setBidMethods(resData.contractMethods);
+
+
+        } catch (error) {
+            console.error('기본 검색 조건 조회 실패', error);
+        }
     }
 
     // 서버로 검색 객체 전송
@@ -148,7 +215,6 @@ function SearchBox() {
 
 
 
-        // console.log(data);
 
         try {
             // OpenAPI 용
@@ -210,10 +276,6 @@ function SearchBox() {
                 Promise.all(bidRequests)
             ]);
 
-            console.log("사전규격(물품) 응답:", productResponses);
-            console.log("사전규격(용역) 응답:", serviceResponses);
-            console.log("입찰공고 응답:", bidResponses);
-
             // 🔹 사전규격(물품, 용역) 데이터에 구분값 추가
             const productResults = productResponses.flatMap(response =>
                 (response?.data?.response?.body?.items ?? []).map(item => ({
@@ -243,7 +305,6 @@ function SearchBox() {
 
             // 상태 업데이트
             setBidInfos(allResults);
-            console.log("병렬 처리된 결과:", allResults);
         } catch (error) {
             console.error('검색 요청 실패', error);
         } finally {
@@ -303,7 +364,7 @@ function SearchBox() {
                                     <div className={styles.resultBox}>
                                         <div className={styles.searchBar__results}>
                                             {/* 검색어에 추가 결과 표시부분 */}
-                                            {searchTerms && searchTerms.map((term, index) => (
+                                            {searchTerms.map((term, index) => (
                                                 <div key={index} className={styles.searchBar__results__tag}>
                                                     {term}
                                                     <button className={styles.searchBar__search__btn}
@@ -416,8 +477,8 @@ function SearchBox() {
             <div className={styles.searchBox__btn}>
                 <div className={styles.searchBox__wrapBtn}>
                     {/* 버튼 생성 */}
-                    <button className={styles.searchBox__btn__edit}>기본 검색 <br />조건으로 설정</button>
-                    <button className={styles.searchBox__btn__default} onClick={handleDetail}>기본 검색 조건 <br />적용</button>
+                    <button className={styles.searchBox__btn__edit} onClick={handleDetail}>기본 검색 <br />조건으로 설정</button>
+                    <button className={styles.searchBox__btn__default} onClick={applyDefault}>기본 검색 조건 <br />적용</button>
                     <button className={styles.searchBox__btn__search} onClick={handleSearch}>검색</button>
                 </div>
             </div>

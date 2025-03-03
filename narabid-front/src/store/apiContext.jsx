@@ -13,6 +13,7 @@ export const BidInfoProvider = ({ children }) => {
     const [types, setTypes] = useState(new Set(["1", "2", "3"]));
     const [categories, setCategories] = useState([]);
 
+    const BASE_API_URL = `${API_BASE_URL}`;
     // OpenAPI 정보 상태관리
     const PRE_API_URL = "http://apis.data.go.kr/1230000/ao/HrcspSsstndrdInfoService";
     const PRE_API_KEY = "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw==";
@@ -25,8 +26,6 @@ export const BidInfoProvider = ({ children }) => {
     const getCategory = async () => {
         try {
             const response = await axios.post(`${API_BASE_URL}/api/bids/category`, typesArray);
-            console.log(response.data);
-
 
             setCategories(response.data); // 받아온 데이터를 상태에 저장
         } catch (error) {
@@ -39,7 +38,7 @@ export const BidInfoProvider = ({ children }) => {
     }, [])
 
     return (
-        <BidInfoContext.Provider value={{ bidInfos, setBidInfos, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, isLoading, setIsLoading, categories, setTypes }}>
+        <BidInfoContext.Provider value={{ bidInfos, setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, isLoading, setIsLoading, categories, setCategories, setTypes }}>
             {children}
         </BidInfoContext.Provider>
     );

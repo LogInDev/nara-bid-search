@@ -6,7 +6,6 @@ import { useBidInfo } from '@/store/apiContext'
 function MainPage() {
     const { bidInfos } = useBidInfo();
 
-    console.log(bidInfos)
     return (
         <div>
             <h1>나라장터 검색 시스템</h1>

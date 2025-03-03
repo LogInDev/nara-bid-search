@@ -82,7 +82,6 @@ const MyTable = () => {
             fileList.push({ name: fileName, url: fileUrl });
           }
         }
-        console.log(fileList);
 
         results.push({
           no: index + 1,
