@@ -1,7 +1,7 @@
 package com.nivuskorea.procurement.service;
 
-import com.nivuskorea.procurement.dto.BidInfoActiveDto;
-import com.nivuskorea.procurement.dto.BidInformationDto;
+import com.nivuskorea.procurement.dto.BidInfoActiveDTO;
+import com.nivuskorea.procurement.dto.BidInformationDTO;
 import com.nivuskorea.procurement.entity.*;
 import com.nivuskorea.procurement.repository.BidInfomationRepository;
 import com.nivuskorea.procurement.repository.BidInformationBatchRepository;
@@ -27,10 +27,10 @@ public class BidInformationService {
     private final ContractTypesService contractTypesService;
     private final ProjectSearchKeywordsService projectSearchKeywordsService;
 
-    public List<BidInfoActiveDto> getActiveBids() {
+    public List<BidInfoActiveDTO> getActiveBids() {
         List<Object[]> results = bidInfomationRepository.findActiveBids();
 
-        return results.stream().map(obj -> new BidInfoActiveDto(
+        return results.stream().map(obj -> new BidInfoActiveDTO(
                 Category.valueOf((String) obj[0]).getDescription(), // category
                 BidType.valueOf((String) obj[1]).getDescription(), // bidType
                 (String) obj[2], // title
@@ -49,7 +49,7 @@ public class BidInformationService {
      * @param bids 조회 결과
      */
     @Transactional
-    public void saveBidAnnAllBids(List<BidInformationDto> bids) {
+    public void saveBidAnnAllBids(List<BidInformationDTO> bids) {
         log.info("saveBidAnnAllBids 실행");
         List<BidInformation> bidInformationList = new ArrayList<>();
         bids.forEach(bid -> {
@@ -66,7 +66,7 @@ public class BidInformationService {
      * @param bids 조회 결과
      */
     @Transactional
-    public void savePreStdAllBids(List<BidInformationDto> bids) {
+    public void savePreStdAllBids(List<BidInformationDTO> bids) {
         log.info("savePreStandAllBids 실행");
         List<BidInformation> bidInformationList = new ArrayList<>();
         bids.forEach(bid -> {
@@ -80,7 +80,7 @@ public class BidInformationService {
      * @param bids 조회 결과
      */
     @Transactional
-    public void savePreStdKeywordsAllBids(List<BidInformationDto> bids) {
+    public void savePreStdKeywordsAllBids(List<BidInformationDTO> bids) {
         log.info("savePreStdKeywordsAllBids 실행");
         List<BidInformation> bidInformationList = new ArrayList<>();
         bids.forEach(bid -> {

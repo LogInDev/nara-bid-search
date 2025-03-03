@@ -1,16 +1,16 @@
 package com.nivuskorea.procurement.dto;
 
 import com.nivuskorea.procurement.entity.BidInformation;
-import com.nivuskorea.procurement.entity.BidType;
-import com.nivuskorea.procurement.entity.Category;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class BidInformationDto {
+@ToString
+public class BidInformationDTO {
     private String category;    // 구분(물품 || 일반용역 || 기술용역)
     private String bidType;     // 구분(사전규격 || 입찰공고)
     private String title;       // 공고명
@@ -26,8 +26,37 @@ public class BidInformationDto {
     private Long contractId;   // ContractType의 FK
     private Long keywordId;   // ProjectSearchKeyword의 FK
 
-    public static BidInformationDto fromEntity(BidInformation entity) {
-        return BidInformationDto.builder()
+//    @Builder
+//    public BidInformationDTO(String category, String bidType, String title, String institution, String bidNumber, Long estimatedAmount, LocalDateTime announcementDate, LocalDateTime deadline, String contractMethod) {
+//        this.category = category;
+//        this.bidType = bidType;
+//        this.title = title;
+//        this.institution = institution;
+//        this.bidNumber = bidNumber;
+//        this.estimatedAmount = estimatedAmount;
+//        this.announcementDate = announcementDate;
+//        this.deadline = deadline;
+//        this.contractMethod = contractMethod;
+//    }
+//
+//    @Builder
+//    public BidInformationDTO(String category, String bidType, String title, String institution, String bidNumber, Long estimatedAmount, LocalDateTime announcementDate, LocalDateTime deadline, String contractMethod, Long productId, Long regionId, Long contractId) {
+//        this.category = category;
+//        this.bidType = bidType;
+//        this.title = title;
+//        this.institution = institution;
+//        this.bidNumber = bidNumber;
+//        this.estimatedAmount = estimatedAmount;
+//        this.announcementDate = announcementDate;
+//        this.deadline = deadline;
+//        this.contractMethod = contractMethod;
+//        this.productId = productId;
+//        this.regionId = regionId;
+//        this.contractId = contractId;
+//    }
+
+    public static BidInformationDTO fromEntity(BidInformation entity) {
+        return BidInformationDTO.builder()
                 .category(entity.getCategory().getDescription()) // 한글 변환
                 .bidType(entity.getBidType().getDescription())
                 .title(entity.getTitle())

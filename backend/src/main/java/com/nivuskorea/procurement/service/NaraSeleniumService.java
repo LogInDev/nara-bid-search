@@ -1,6 +1,6 @@
 package com.nivuskorea.procurement.service;
 
-import com.nivuskorea.procurement.dto.BidInformationDto;
+import com.nivuskorea.procurement.dto.BidInformationDTO;
 import com.nivuskorea.procurement.entity.*;
 import com.nivuskorea.procurement.factory.WebDriverFactory;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class NaraSeleniumService {
     @Async
     public CompletableFuture<WebDriver> BidAnnouncementSearch(){
         WebDriver driver = webDriverFactory.createWebDriver();
-        List<BidInformationDto> bidList = new ArrayList<>();
+        List<BidInformationDTO> bidList = new ArrayList<>();
 
         try {
             log.info("Selenium1 시작");
@@ -119,7 +119,7 @@ public class NaraSeleniumService {
     public CompletableFuture<WebDriver> PreStandardSearch(){
         log.info("새로운 Web");
         WebDriver driver = webDriverFactory.createWebDriver();
-        List<BidInformationDto> bidList = new ArrayList<>();
+        List<BidInformationDTO> bidList = new ArrayList<>();
 
         try {
             log.info("Selenium2 시작");
@@ -221,7 +221,7 @@ public class NaraSeleniumService {
      * @param restrictedRegion 검색한 제한지역 객체
      * @throws InterruptedException 크롬 예외 처리
      */
-    private void searchResult(WebDriver driver, List<BidInformationDto> bidList, DetailProduct detailProduct, RestrictedRegion restrictedRegion, ContractType contractType) throws InterruptedException {
+    private void searchResult(WebDriver driver, List<BidInformationDTO> bidList, DetailProduct detailProduct, RestrictedRegion restrictedRegion, ContractType contractType) throws InterruptedException {
         // 검색
         WebElement searchInput = driver.findElement(By.id("mf_wfm_container_tacBidPbancLst_contents_tab2_body_bidPbancNm"));
         searchInput.sendKeys(Keys.ENTER);
@@ -266,7 +266,7 @@ public class NaraSeleniumService {
                                     .replaceAll("[^0-9]", "");
                         }
                     }
-                    bidList.add(BidInformationDto.builder()
+                    bidList.add(BidInformationDTO.builder()
                             .category(row.findElements(By.tagName("td")).get(1).getText())
                             .bidType("입찰공고")
                             .title(row.findElements(By.tagName("td")).get(6).getText())

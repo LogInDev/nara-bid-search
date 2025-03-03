@@ -1,6 +1,6 @@
 package com.nivuskorea.procurement.entity;
 
-import com.nivuskorea.procurement.dto.BidInformationDto;
+import com.nivuskorea.procurement.dto.BidInformationDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -55,7 +55,7 @@ public class BidInformation  extends BaseEntity{
     }
 
     // 입찰 공고 검색 결과
-    public BidInformation(BidInformationDto dto, DetailProduct detailProduct, RestrictedRegion restrictedRegion, ContractType contractType) {
+    public BidInformation(BidInformationDTO dto, DetailProduct detailProduct, RestrictedRegion restrictedRegion, ContractType contractType) {
         this.category = Category.fromString(dto.getCategory());
         this.bidType = BidType.fromString(dto.getBidType());
         this.title = dto.getTitle();
@@ -71,7 +71,7 @@ public class BidInformation  extends BaseEntity{
     }
 
     // 발주 > 사전 규격 > 물품 검색 결과
-    public BidInformation(BidInformationDto dto, DetailProduct detailProduct) {
+    public BidInformation(BidInformationDTO dto, DetailProduct detailProduct) {
         this.category = Category.fromString(dto.getCategory());
         this.bidType = BidType.fromString(dto.getBidType());
         this.title = dto.getTitle();
@@ -85,7 +85,7 @@ public class BidInformation  extends BaseEntity{
     }
 
     // 발주 > 사전 규격 > 일반용역, 기술용역 검색 결과
-    public BidInformation(BidInformationDto dto, ProjectSearchKeyword projectSearchKeyword) {
+    public BidInformation(BidInformationDTO dto, ProjectSearchKeyword projectSearchKeyword) {
         this.category = Category.fromString(dto.getCategory());
         this.bidType = BidType.fromString(dto.getBidType());
         this.title = dto.getTitle();

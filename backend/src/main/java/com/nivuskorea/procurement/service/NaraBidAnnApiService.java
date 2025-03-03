@@ -3,7 +3,8 @@ package com.nivuskorea.procurement.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nivuskorea.procurement.dto.BidInformationDto;
+import com.nivuskorea.procurement.dto.BidInformationDTO;
+import com.nivuskorea.procurement.dto.BidProductDTO;
 import com.nivuskorea.procurement.entity.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,23 +12,14 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-
-import static ch.qos.logback.core.encoder.ByteArrayUtil.hexStringToByteArray;
 
 @Service
 @Slf4j
@@ -43,14 +35,14 @@ public class NaraBidAnnApiService {
     HttpClient client = HttpClient.newHttpClient();
 
     /**
-     * 발주 목록 > 사전규격 > 일반용역, 기술용역 > 검색어 결과 저장 process
+     * 입찰 공고 목록 > 물품 > 세부 품목 결과 저장 process
      */
     public void bidAnnApi(){
         try {
             final List<RestrictedRegion> restrictedRegions = restrictedRegionService.selectByBidType(BidType.BID_ANNOUNCEMENT);
             final List<DetailProduct> detailProducts = detailProductsService.selectByBidType(BidType.BID_ANNOUNCEMENT);
             final List<ContractType> contractTypes = contractTypesService.selectByBidType(BidType.BID_ANNOUNCEMENT);
-            List<BidInformationDto> bidList = new ArrayList<>();
+            List<BidInformationDTO> bidList = new ArrayList<>();
 
             final String sessionId = getSessionId();
 
@@ -70,6 +62,33 @@ public class NaraBidAnnApiService {
         }
     }
 
+    /**
+     * 프론트에서 요청받은 요청객체로 검색 후 응답 객체 반환
+     * @param bidProductReq 조회 시작일, 조회 종료일, 세부품목
+     */
+    public List<BidInformationDTO> bidAnnApi(BidProductDTO bidProductReq){
+            List<BidInformationDTO> bidList = new ArrayList<>();
+        try {
+
+            final String sessionId = getSessionId();
+            log.info("bidProductReq : {}", bidProductReq);
+            for (String restrictedRegion : bidProductReq.getRestictRegions()) {
+                for (String contractType : bidProductReq.getContractMethod()) {
+                    for (String detailProduct : bidProductReq.getDetailProducts()) {
+                        getOrderPlanNoList(sessionId, detailProduct, contractType, restrictedRegion, bidList, bidProductReq.getStartDate(), bidProductReq.getEndDate());
+                    }
+                }
+            }
+            log.info("bidList : {}", bidList);
+
+//            bidInformationService.saveBidAnnAllBids(bidList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bidList;
+    }
+
 
     /**
      * 공고 번호별 검색 요청 및 응답 결과 Entity 리스트로 생성
@@ -78,7 +97,7 @@ public class NaraBidAnnApiService {
      * @param detailProduct 세부품목객체
      */
     private void processOrderPlans(String sessionId, List<String> orderPlanNoList, DetailProduct detailProduct) {
-        List<BidInformationDto> bidList = new ArrayList<>();
+        List<BidInformationDTO> bidList = new ArrayList<>();
         for (String orderPlanNo : orderPlanNoList) {
             try {
                 HttpResponse<String> response = getDetailResultHttpResponse(sessionId, orderPlanNo);
@@ -97,13 +116,13 @@ public class NaraBidAnnApiService {
      * @param bidList Entity 리스트
      * @param detailProduct 세부 품목 객체
      */
-    private void parseResponse(String responseBody, List<BidInformationDto> bidList, DetailProduct detailProduct) throws Exception {
+    private void parseResponse(String responseBody, List<BidInformationDTO> bidList, DetailProduct detailProduct) throws Exception {
         JsonNode rootNode = objectMapper.readTree(responseBody);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
 
         if (rootNode.has("dlBfSpecM")) {
             JsonNode item = rootNode.get("dlBfSpecM");
-            bidList.add(BidInformationDto.builder()
+            bidList.add(BidInformationDTO.builder()
                     .category(item.get("prcmBsneSeCdNm").asText(""))
                     .bidType("사전규격")
                     .title(StringEscapeUtils.unescapeHtml4(item.get("bfSpecNm").asText("")))    // 공고명
@@ -118,13 +137,13 @@ public class NaraBidAnnApiService {
         }
     }
     // 키워드 검색용
-    private void parseResponse(String responseBody, List<BidInformationDto> bidList, ProjectSearchKeyword projectSearchKeyword) throws Exception {
+    private void parseResponse(String responseBody, List<BidInformationDTO> bidList, ProjectSearchKeyword projectSearchKeyword) throws Exception {
         JsonNode rootNode = objectMapper.readTree(responseBody);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
 
         if (rootNode.has("dlBfSpecM")) {
             JsonNode item = rootNode.get("dlBfSpecM");
-            bidList.add(BidInformationDto.builder()
+            bidList.add(BidInformationDTO.builder()
                     .category(item.get("prcmBsneSeCdNm").asText(""))
                     .bidType("사전규격")
                     .title(StringEscapeUtils.unescapeHtml4(item.get("bfSpecNm").asText("")))    // 공고명
@@ -140,13 +159,14 @@ public class NaraBidAnnApiService {
     }
 
     /**
-     * 발주목록 > 사전규격 공고 검색
+     * 입찰 공고 목록 > 물품 공고 검색
      * @param sessionId 요청할 세션 id
      * @param contractType 계약방법('물품' 검색 시)
      * @param restrictedRegion 참가제한지역('물품' 검색 시)
      * @return 검색 결과 중 공고 번호 리스트로 반환
      */
-    private void getOrderPlanNoList(String sessionId, DetailProduct detailProduct, ContractType contractType, RestrictedRegion restrictedRegion, List<BidInformationDto> bidList) throws IOException, InterruptedException {
+
+    private void getOrderPlanNoList(String sessionId, DetailProduct detailProduct, ContractType contractType, RestrictedRegion restrictedRegion, List<BidInformationDTO> bidList) throws IOException, InterruptedException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
         // 참가제한지역 설정
         String restrictedRegionCode = restrictedRegion.getRestrictedRegion().equals("인천광역시") ? "28" : "00";
@@ -167,7 +187,7 @@ public class NaraBidAnnApiService {
                 if (!item.get("pbancSttsNm").asText().contains("취소")){
                     final String dataAll = StringEscapeUtils.unescapeHtml4(item.get("pbancPstgDt").asText(""));
                     final StartToEndDates dates = extractDates(dataAll);
-                        bidList.add(BidInformationDto.builder()
+                        bidList.add(BidInformationDTO.builder()
                                 .category(item.get("prcmBsneSeCdNm").asText(""))    // 구분
                                 .bidType("입찰공고")
                                 .title(StringEscapeUtils.unescapeHtml4(item.get("bidPbancNm").asText("")))    // 공고명
@@ -180,6 +200,54 @@ public class NaraBidAnnApiService {
                                 .productId(detailProduct.getId())
                                 .regionId(restrictedRegion.getId())
                                 .contractId(contractType.getId())
+                                .build());
+                    }
+                }
+            }
+
+    }
+
+    /**
+     * 프론트에서 요청받은 객체로 입찰 공고 목록 > 물품 공고 검색
+     * @param sessionId
+     * @param sessionId 요청할 세션 id
+     * @param contractType 계약방법('물품' 검색 시)
+     * @param restrictedRegion 참가제한지역('물품' 검색 시)
+     * @param startDate 조회 시작일
+     * @param restrictedRegion 조회 종료일
+     * @return 검색 결과 중 공고 번호 리스트로 반환
+     */
+    private void getOrderPlanNoList(String sessionId, String detailProduct, String contractType, String restrictedRegion, List<BidInformationDTO> bidList, String startDate, String endDate) throws IOException, InterruptedException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+        // 참가제한지역 설정
+        String restrictedRegionCode = restrictedRegion.equals("인천광역시") ? "28" : "00";
+        // 계약방법 설정
+        String contractTypeCode = contractType.equals("일반경쟁") ? "계030001" : "계030003";
+        log.info("restrictedRegionCode: " + restrictedRegionCode);
+        log.info("contractTypeCode: " + contractTypeCode);
+        final HttpRequest dataRequest = buildOrderRequest(sessionId, detailProduct, contractTypeCode, restrictedRegionCode, startDate, endDate);
+        // 요청 객체로 세부 품목별 사전규격 검색 결과 응답 객체 반환
+        HttpResponse<String> dataResponse = client.send(dataRequest, HttpResponse.BodyHandlers.ofString());
+
+        log.info("dataResponse : {}",dataResponse.body());
+        // 응답 객체 처리 - 검색 결과 중 공고 번호만 추출
+        JsonNode rootNode = objectMapper.readTree(dataResponse.body());
+        if (rootNode.has("result")) {
+            for (JsonNode item : rootNode.get("result")) {
+//                log.info("item : {}", item);
+                if (!item.get("pbancSttsNm").asText().contains("취소")){
+                    final String dataAll = StringEscapeUtils.unescapeHtml4(item.get("pbancPstgDt").asText(""));
+                    final StartToEndDates dates = extractDates(dataAll);
+                        bidList.add(BidInformationDTO.builder()
+                                .category(item.get("prcmBsneSeCdNm").asText(""))    // 구분
+                                .bidType("입찰공고")
+                                .title(StringEscapeUtils.unescapeHtml4(item.get("bidPbancNm").asText("")))    // 공고명
+                                .institution(StringEscapeUtils.unescapeHtml4(item.get("dmstNm").asText(""))) // 수요기관
+                                .bidNumber(StringEscapeUtils.unescapeHtml4(item.get("bidPbancUntyNo").asText(""))) // 공고번호
+                                .estimatedAmount(item.get("alotBgtAmt").asLong(0L)) // 기초금액(배정예산액)
+                                .announcementDate(dates.announcementDate) // 공고일(공개일시)
+                                .deadline(dates.deadline) // 마감일(의견등록마감)
+                                .contractMethod(StringEscapeUtils.unescapeHtml4(item.get("scsbdMthdNm").asText("")))
                                 .build());
                     }
                 }
@@ -228,7 +296,7 @@ public class NaraBidAnnApiService {
         final LocalDate lastYearDec = today.minusYears(1).withMonth(12);
         final LocalDate thisYearDec = today.withMonth(12);
 
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyMMdd");
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         final DateTimeFormatter yearMonthFormatter = DateTimeFormatter.ofPattern("yyyyMM");
 
         // 요청 객체 생성
@@ -253,6 +321,72 @@ public class NaraBidAnnApiService {
         dlBidPbancLstM.put("startIndex", "1");  // 시작 인덱스
 
 //        log.info("dlBidPbancLstM : {}", dlBidPbancLstM);
+
+        Map<String, Object> jsonRequest = new HashMap<>();
+        jsonRequest.put("dlBidPbancLstM", dlBidPbancLstM);
+
+        String jsonInputString = convertToJson(jsonRequest);
+
+        String cookies = "JSESSIONID=" + sessionId
+                + "; WHATAP=x342cfbfle816r"
+                + "; XTVID=A2501271422049643"
+                + "; Path=/"
+                + "; infoSysCd=%EC%A0%95010029"
+                + "; _harry_url=https%3A//www.g2b.go.kr/"
+                + "; XTSID=A250222215618811067"
+                + "; xloc=1194X834"
+                + "; lastAccess=1740232230001";
+
+        HttpRequest dataRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://www.g2b.go.kr/pn/pnp/pnpe/BidPbac/selectBidPbacScrollTypeList.do"))
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .header("Accept", "application/json")
+                .header("Referer", "https://www.g2b.go.kr/")
+                .header("Cookie", cookies) // 갱신된 쿠키 포함
+                .header("menu-info", "{\"menuNo\":\"01175\",\"menuCangVal\":\"PNPE001_01\",\"bsneClsfCd\":\"%EC%97%85130026\",\"scrnNo\":\"00941\"}")
+                .header("submissionid", "mf_wfm_container_tacBidPbancLst_contents_tab2_body_sbmPbancBidPbancLst")
+                .header("target-id", "btnS0004")
+                .header("usr-id", "null")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonInputString))
+                .build();
+
+        return dataRequest;
+    }
+
+    /**
+     * 프론트에서 요청 받은 세부품목별 사전규격 검색 결과 리스트 응답을 위한 요청객체 생성
+     * @param sessionId  요청에 보낼 세션 id
+     * @param itemNumber 세부품목번호
+     * @param contractMethod 일반경쟁 : "계030001" || 제한경쟁 : "계030003"
+     * @param restrictedRegionCode 전국(제한없음 : "00" || 인천광역시 : "28"
+     * @param startDate 조회 시작일(yyyyMMdd)
+     * @param endDate 조회 종료일(yyyyMMdd)
+     * @return 응답 객체
+     */
+    private static HttpRequest buildOrderRequest(String sessionId, String itemNumber, String contractMethod, String restrictedRegionCode, String startDate, String endDate) throws IOException, InterruptedException {
+        // 요청 객체 생성
+        Map<String, Object> dlBidPbancLstM = new HashMap<>();
+        dlBidPbancLstM.put("bidCtrtMthdCd", contractMethod);  // 계약방법
+        dlBidPbancLstM.put("bidDateType", "R");
+        dlBidPbancLstM.put("bsneAllYn", "Y");
+        dlBidPbancLstM.put("contxtSeCd", "콘010006");
+        dlBidPbancLstM.put("dtlsPrnmNo", itemNumber);  // 세부품목번호
+        dlBidPbancLstM.put("frcpYn", "Y");
+        dlBidPbancLstM.put("infoSysCd", "정010029");
+        dlBidPbancLstM.put("fromBidDt", startDate);    // 조회 시작일
+        dlBidPbancLstM.put("toBidDt", endDate);  // 조회 종료일
+        dlBidPbancLstM.put("laseYn", "Y");
+        dlBidPbancLstM.put("odnLmtLgdngCd", restrictedRegionCode);  // 참가제한지역
+        dlBidPbancLstM.put("pbancKndCd", "공440002");
+        dlBidPbancLstM.put("prcmBsneSeCd", "조070001");
+        dlBidPbancLstM.put("recordCountPerPage", "100"); // 불러올 결과 index 수(?)
+        dlBidPbancLstM.put("endIndex", 100);    // 불러올 결과 index 수
+        dlBidPbancLstM.put("rsrvYn", "Y");
+        dlBidPbancLstM.put("srchTy", "0");
+        dlBidPbancLstM.put("startIndex", "1");  // 시작 인덱스
+
+        log.info("dlBidPbancLstM : {}", dlBidPbancLstM);
 
         Map<String, Object> jsonRequest = new HashMap<>();
         jsonRequest.put("dlBidPbancLstM", dlBidPbancLstM);

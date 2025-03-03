@@ -1,11 +1,9 @@
 package com.nivuskorea.procurement.repository;
 
-import com.nivuskorea.procurement.dto.BidInfoActiveDto;
 import com.nivuskorea.procurement.entity.BidInformation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BidInfomationRepository extends JpaRepository<BidInformation, Long> {
