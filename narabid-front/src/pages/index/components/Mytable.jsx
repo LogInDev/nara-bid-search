@@ -214,7 +214,7 @@ const MyTable = () => {
                     <button className={styles.fileUrl__oneDiv__btnTag} onClick={(e) => {
                       handleFileDownload(file.url);
                     }}>
-                      <img className={styles.fileUrl__oneDiv__imgTag} src='src/assets/icons/icon-download.png' alt="" />
+                      <img className={styles.fileUrl__oneDiv__imgTag} src='/icons/icon-download.png' alt="" />
                     </button>
                     <a className={styles.fileUrl__oneDiv__aTag} href={file.url} target="_blank" rel="noopener noreferrer" >
                       {file.name}
