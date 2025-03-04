@@ -353,7 +353,7 @@ function SearchBox() {
                                             onChange={(e) => setSearchInput(e.target.value)}
                                             onKeyDown={handleKeyDown} />
                                         <button onClick={addSearchTerm} className={styles.searchBar__btn}>
-                                            <img src='src/assets/icons/icon-plus.png' alt="" />
+                                            <img src='/icons/icon-plus.png' alt="" />
                                         </button>
                                     </div>
                                 </td>
@@ -369,7 +369,7 @@ function SearchBox() {
                                                     {term}
                                                     <button className={styles.searchBar__search__btn}
                                                         onClick={() => removeSearchTerm('terms', index)}>
-                                                        <img src='src/assets/icons/icon-cross.png' alt="" />
+                                                        <img src='/icons/icon-cross.png' alt="" />
                                                     </button>
                                                 </div>
                                             ))}
