@@ -175,8 +175,6 @@ const MyTable = () => {
     },
     {
       headerName: "수요기관", field: "organization", width: 120, sortable: true, filter: true,
-      // tooltipValueGetter: (params) => params.value,
-      // tooltipComponentFramework: CustomTooltip,
     },
     { headerName: "공고번호", field: "bidNumber", width: 150, sortable: true, filter: "agTextColumnFilter" },
     {
@@ -247,6 +245,7 @@ const MyTable = () => {
   }));
 
   const gridOptions = {
+    domLayout: 'autoHeight',
     pagination: true,
     paginationPageSize: 30,
     // paginationAutoPageSize: false, // ✅ 필요에 따라 자동 페이지 크기 사용 여부 설정

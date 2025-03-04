@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "ag-grid-community": "^30.2.1",
-    "ag-grid-react": "^30.2.1",
+    "ag-grid-community": "^32.3.3",
+    "ag-grid-react": "^32.3.3",
     "axios": "^1.8.1",
     "date-fns": "^4.1.0",
     "localforage": "^1.10.0",
