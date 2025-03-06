@@ -89,7 +89,7 @@ const MyTable = () => {
           bidType: "사전규격",
           title: item.prdctClsfcNoNm,
           organization: item.rlDminsttNm,
-          bidNumber: item.bidNtceNoList,
+          bidNumber: item.bfSpecRgstNo,
           amount: item.asignBdgtAmt,
           announcementDate: item.rgstDt,
           deadline: '',

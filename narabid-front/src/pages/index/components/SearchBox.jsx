@@ -303,6 +303,7 @@ function SearchBox() {
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
             const allResults = [...productResults, ...serviceResults, ...bidResults];
 
+            console.log('검색 결과', allResults);
             // 상태 업데이트
             setBidInfos(allResults);
         } catch (error) {

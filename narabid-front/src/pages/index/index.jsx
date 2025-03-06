@@ -12,8 +12,8 @@ function MainPage() {
             <h1>나라장터 검색 시스템</h1>
             <br />
             <SearchBox />
-            <br />
-            <SendMessage />
+            {/* <br />
+            <SendMessage /> */}
             <br />
             <MyTable />
         </div>
