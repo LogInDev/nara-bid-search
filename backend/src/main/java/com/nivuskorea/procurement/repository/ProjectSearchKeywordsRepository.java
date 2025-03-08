@@ -16,6 +16,8 @@ public interface ProjectSearchKeywordsRepository extends JpaRepository<ProjectSe
 
     // keyword로 찾기
     Optional<ProjectSearchKeyword> findBySearchKeyword(String keyword);
+    // BidType별 keyword 조회
+    Optional<ProjectSearchKeyword> findByBidTypeAndSearchKeyword(BidType bidType, String searchKeyword);
 
     List<ProjectSearchKeyword> findByIsUsedTrueOrderByIdDesc();
 }

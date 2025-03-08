@@ -1,0 +1,26 @@
+{
+  "productRequest": {
+    "pageNo": "1",
+    "numOfRows": "100",
+    "type": "json",
+    "inqryDiv": "1"
+  },
+  "proKeywordRequest": {
+    "pageNo": "1",
+    "numOfRows": "100",
+    "type": "json",
+    "inqryDiv": "1"
+  },
+  "bidRequest": {
+    "pageNo": "1",
+    "numOfRows": "100",
+    "type": "json",
+    "inqryDiv": "1"
+  },
+  "bidKeywordRequest": {
+    "pageNo": "1",
+    "numOfRows": "100",
+    "type": "json",
+    "inqryDiv": "1"
+  }
+}

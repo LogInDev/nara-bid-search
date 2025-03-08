@@ -5,13 +5,17 @@ import com.nivuskorea.procurement.service.BidInformationService;
 import com.nivuskorea.procurement.service.CategoryService;
 import com.nivuskorea.procurement.service.NaraBidAnnApiService;
 import com.nivuskorea.procurement.service.NaraProcurementApiService;
+import com.nivuskorea.procurement.service.oauth.KakaoAuthService;
+import com.nivuskorea.procurement.service.openApi.OpenApiProperties;
 import com.nivuskorea.procurement.service.openApi.OpenApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -26,6 +30,8 @@ public class BidInformationApiController {
     private final NaraBidAnnApiService naraBidAnnApiService;
     private final OpenApiService openApiService;
     private final CategoryService categoryService;
+    private final OpenApiProperties openApiProperties;
+    private final KakaoAuthService kakaoAuthService;
 
     @GetMapping("/all")
     public List<BidInfoActiveDTO> getAllBids(){
@@ -98,9 +104,16 @@ public class BidInformationApiController {
         return ResponseEntity.ok(bidInformationRes);
     }
 
+    @GetMapping("/refresh-token")
+    public ResponseEntity<Map<String, String>> refreshToken() {
+        String newAccessToken = kakaoAuthService.refreshAccessToken();
+        Map<String, String> response = new HashMap<>();
+        response.put("accessToken", newAccessToken);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/test")
-    public String testApi(){
+    public String testApi() {
 
         naraBidAnnApiService.bidAnnApi();
         naraProcurementApiService.keywordApi();

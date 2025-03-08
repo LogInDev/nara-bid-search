@@ -10,7 +10,7 @@ const BidInfoContext = createContext();
 export const BidInfoProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(false); // 로딩 상태관리
     const [bidInfos, setBidInfos] = useState([]);
-    const [types, setTypes] = useState(new Set(["1", "2", "3"]));
+    const [types, setTypes] = useState(new Set(["1", "2", "3", "4"]));
     const [categories, setCategories] = useState([]);
 
     const BASE_API_URL = `${API_BASE_URL}`;

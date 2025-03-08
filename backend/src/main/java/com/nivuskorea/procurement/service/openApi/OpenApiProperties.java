@@ -17,5 +17,8 @@ public class OpenApiProperties {
     private String bid_key;
     private String procurement_url;
     private String procurement_key;
+    private String token_url;
+    private String client_id;
+    private String refresh_token;
 
 }

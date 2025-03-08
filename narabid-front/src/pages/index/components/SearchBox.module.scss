@@ -1,13 +1,8 @@
 
 .searchBox{
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
 
-    width: 100%;
-    // margin: 0 auto;
-    min-height: 50vh;
-    margin-left: 10px;
+    min-width: 1200px;
+    min-height: 500px;
 
     gap:7px;
 
@@ -40,21 +35,59 @@
                 transform: translateY(-2px); /* 입체감 */
             }
         }
-        &__search{
-            width: 100px;
-            height: 200px;
+        // 검색버튼 css
+        &__search1{
             border-radius: 8px;
-            &:hover{
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
-                transform: translateY(-2px); /* 입체감 */
+            border: none;
+            // background-color: rgba(228, 231, 236,0.3);
+            background-color: main.$color-gray-100;
+            // background-color: transparent;
+            cursor: pointer;
+            width: 100%;
+            height: 200px;
+            transition: box-shadow 0.3s ease, transform 0.2s ease; /* 부드러운 애니메이션 */
+
+            &:hover {
+                box-shadow: 0 4px 12px rgba(0, 112, 239, 0.6), 0 1px 6px rgba(0, 112, 239, 0.4); /* 파란색 빛 효과 */
+                transform: translateY(-2px); /* 살짝 떠오르는 효과 */
             }
         }
-        button{
+        &__search2{
+            border-radius: 8px;
             border: none;
-            background-color: none;
+            // background-color: rgba(228, 231, 236,0.3);
+            background-color: main.$color-gray-100;
+            // background-color: transparent;
             cursor: pointer;
-            min-width: 70px;
+            width: 100%;
+            height: 200px;
+            transition: box-shadow 0.3s ease, transform 0.2s ease; /* 부드러운 애니메이션 */
+
+            &:hover {
+                box-shadow: 0 4px 12px rgba(0, 112, 239, 0.6), 0 1px 6px rgba(0, 112, 239, 0.4); /* 파란색 빛 효과 */
+                transform: translateY(-2px); /* 살짝 떠오르는 효과 */
+            }
         }
+        /* 🔹 특정 검색 버튼이 속한 `tr`만 반짝이게 설정 */
+        // tr:hover {
+        //     border: 2px solid rgba(0, 112, 239, 0.8);
+        //     box-shadow: 0 0 15px rgba(0, 112, 239, 0.7);
+        //     transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        // }
+
+        /* 🔹 부드러운 빛 효과 애니메이션 */
+        @keyframes glowEffect {
+            0% {
+                box-shadow: 0 0 10px rgba(0, 112, 239, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(0, 112, 239, 0.6);
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(0, 112, 239, 0.3);
+            }
+        }
+
     }
     &__detail{
         display: flex;
@@ -62,9 +95,140 @@
         justify-content: center;
         flex-direction: column;
 
-        // width: 100%;
+        width: 100%;
         gap: 10px;
     }
+    
+}
+.highlightTr {
+    /* ✅ 외곽 테두리만 강조 */
+    outline: 3px solid rgba(0, 112, 239, 0.8); /* ✅ `border` 대신 `outline` 사용 */
+    box-shadow: 0 0 15px rgba(0, 112, 239, 0.7); /* ✅ 부드러운 빛 효과 */
+    transition: box-shadow 0.3s ease, outline 0.3s ease;
+}
+/* ✅ 첫 번째 `td` → 왼쪽, 위, 아래 라인만 강조 */
+.firstHighlight {
+    border-left: 2px solid rgba(0, 112, 239, 0.8)!important;
+    border-top: 2px solid rgba(0, 112, 239, 0.8)!important;
+    border-bottom: 2px solid rgba(0, 112, 239, 0.8)!important;
+    /* 🔹 특정 `border`에만 그림자 효과 적용 */
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px -4px 6px rgba(0, 112, 239, 0.5);
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px 4px 6px rgba(0, 112, 239, 0.5);
+    }
+
+    animation: glowEffect 1s infinite alternate!important;
+}
+
+/* ✅ 두 번째 `td` → 위 라인만 강조 */
+.secondHighlight {
+    border-top: 2px solid rgba(0, 112, 239, 0.8)!important;
+    /* 🔹 특정 `border`에만 그림자 효과 적용 */
+    position: relative;
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px -4px 6px rgba(0, 112, 239, 0.5);
+    }
+    animation: glowEffect 1s infinite alternate!important;
+}
+/* ✅ 세 번째 `td` → 위, 오른쪽 라인만 강조 */
+.thirdHighlight {
+    border-right: 2px solid rgba(0, 112, 239, 0.8)!important;
+    border-top: 2px solid rgba(0, 112, 239, 0.8)!important;
+    border-bottom: 2px solid rgba(0, 112, 239, 0.8)!important;
+    /* 🔹 특정 `border`에만 그림자 효과 적용 */
+    position: relative;
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px -4px 6px rgba(0, 112, 239, 0.5);
+    }
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px 4px 6px rgba(0, 112, 239, 0.5);
+    }
+
+    animation: glowEffect 1s infinite alternate!important;
+}
+/* ✅ 네 번째 `td` → 아래 라인만 강조 */
+.fourthHighlight {
+    border-bottom: 2px solid rgba(0, 112, 239, 0.8)!important;
+    /* 🔹 특정 `border`에만 그림자 효과 적용 */
+    position: relative;
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px -4px 6px rgba(0, 112, 239, 0.5);
+    }
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px 4px 6px rgba(0, 112, 239, 0.5);
+    }
+    animation: glowEffect 1s infinite alternate!important;
+}
+/* 🔹 부드러운 빛 효과 애니메이션 */
+@keyframes glowEffect {
+    0% {
+        box-shadow: 0 0 10px rgba(0, 112, 239, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(0, 112, 239, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(0, 112, 239, 0.3);
+    }
+}
+
+/* ✅ 버튼도 반짝이도록 설정 */
+.searchBox__btn__search:hover {
+    animation: glowEffect 1s infinite alternate;
 }
 
 .dateBox{
@@ -72,11 +236,8 @@
     align-items: center;
     justify-content:space-evenly;
 
-    margin-right: 5px;
-
     width: 100%;
-    height: calc(100% / 5);
-
+    margin-right: 5px;
     gap: 40px;
 
     // 맨위에 달력 표시되어서 달력 뒤 부분이 클릭되지 않게
@@ -88,7 +249,10 @@
 
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
         transform: translateY(-2px); /* 입체감 */
-
+        height: 30px;
+        border: 1px solid main.$color-gray-700;
+        border-radius: 5px;
+        padding:4px;
     }
 
     label{
@@ -96,6 +260,7 @@
     }
 
 }
+
 
 // 사전규격 - 일반용역, 기술용역 > 검색어 입력
 .tdSearchBar{
@@ -106,13 +271,20 @@
     align-items: flex-start;
     justify-content: flex-start;
 
-    width: 200px;
-    margin-left: 10px;
+    width: 300px;// 검색어 입력창 너비조절
+    // margin-left: 10px;
     padding: 3px;
 
+    border: 1px solid transparent; // ✅ 기본적으로 테두리를 투명하게 설정
+    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out; // ✅ 부드러운 효과
+    border-color: main.$color-gray-700;
+    border-radius: 5px;
+    margin-bottom: 8px;
+
     &:focus-within{
-        border-radius: 8px;
-        border: 1px solid main.$color-white-700;
+        border-radius: 5px;
+        border-color: main.$color-white-700;
+        // border: 1px solid main.$color-white-700;
         background-color: main.$color-white-000;
         box-shadow: 0px 0px 8px 0px rgba(21, 112, 239, 0.3);
 
@@ -128,7 +300,7 @@
 
         font-size: 15px;
         font-weight: 500;
-        line-height: 17px;
+        // line-height: 17px;
 
         color: main.$color-gray-500;
     }
@@ -137,6 +309,7 @@
         border: none;
         cursor: pointer;
         padding: 0;
+        margin-right: 10px;
         img{
             width: 17px;
             height: 17px;
@@ -151,7 +324,8 @@
         justify-content: flex-start;
 
         gap:3px;
-        width: 570px;
+        width: 100%;
+        // width: 570px;
         margin-left: 10px;
         flex-wrap: wrap; /* 요소들이 넘치면 자동으로 다음 줄로 이동 */
         gap: 8px; /* 태그 간격 조절 */
@@ -170,7 +344,7 @@
 
             height: 100%;
 
-            border-radius:4px;
+            border-radius:5px;
             background-color: main.$color-gray-100;
             color: main.$color-gray-500;
 
@@ -192,40 +366,104 @@
     }
 }
 .resultBox{
-    height: 80px;
+    height: 160px;
     overflow-y: auto;
+    background-color: rgb(207, 219, 236,0.5);
+    border-radius: 5px;
+    padding: 8px;
+    &__mid{
+        height: 200px;
+        overflow-y: auto;
+        background-color: rgb(207, 219, 236,0.5);
+        border-radius: 5px;
+        padding: 8px;
+    }
+    // 사전규격 키워드 결과박스
+    &__firstTerm{
+        height: 155px;
+        overflow-y: auto;
+        background-color: rgb(207, 219, 236,0.5);
+        border-radius: 5px;
+        padding: 8px;
+    }
+    // 입찰규격 키워드 결과박스
+    &__secondTerm{
+        height: 195px;
+        overflow-y: auto;
+        background-color: rgb(207, 219, 236,0.5);
+        border-radius: 5px;
+        padding: 8px;
+    }
 }
 
 .wrapDetail{
-    min-width: 800px;
-    width: 800px;
-    overflow-x: auto;
+    min-width: 1200px;
+    width: 1150px;
+    // overflow-x: auto;
+    min-height: 500px;
+    table{
+        // border : 1px solid main.$color-gray-700;
+        border:none;
+        border-collapse: collapse;
+    }
+    th,td{
+        // border : 1px solid main.$color-gray-700;
+        padding: 5px;
+        text-align: center;
+    } 
 }
 
 .table{
-    min-width: 800px;
+    // min-width: 800px;
+    width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* 테이블 레이아웃을 고정 */
-    
-    &__title{
-        min-width: 150px;
+    // table-layout: fixed; /* 테이블 레이아웃을 고정 */
+
+    &__rowtitle{
+        min-width: 400px;
         background-color: main.$color-gray-200;
         text-align:center;
         vertical-align: middle;
+        border-bottom: 1px solid main.$color-gray-700;
+        border-right: 1px solid main.$color-gray-700;
+        // border-left: 1px solid main.$color-gray-700;
+    }
+    &__empty{
+        background-color: main.$color-white-000;
+        border: none!important;
+    }
+    &__title{
+        width: 100px;
+        background-color: main.$color-gray-200;
+        text-align:center;
+        vertical-align: middle;
+        // border-top: 1px solid main.$color-gray-700; 
+        border-bottom: 1px solid main.$color-gray-700;
+        border-right: 1px solid main.$color-gray-700;
 
         &__mid{
             margin-left: 10px;
             font-size: 12px;
             font-weight: 400;
+            // height: 29px;
         }
     }
     &__wrapMid{
+        width: 250px;
         background-color: main.$color-gray-700;
         color: main.$color-white-000;
+        border-bottom: 1px solid main.$color-gray-700;
+        border-right: 1px solid main.$color-gray-700;
+    }
+    &__wrapResultBox{
+        border-bottom: 1px solid main.$color-gray-700;
+        border-right: 1px solid main.$color-gray-700;
     }
     &__searchBar{
-        height: 40px;
+        width: 500px;
+        vertical-align: top;
         text-align: left;
+        border-bottom: 1px solid main.$color-gray-700;
     }
     &__searchResult{
         height: 80px;
@@ -233,6 +471,8 @@
     &__checkResult{
         height: 60px;
         padding: 3px;
+        border-right: 1px solid main.$color-gray-700;
+        border-bottom: 1px solid main.$color-gray-700;
     }
 }
 
@@ -249,13 +489,14 @@
         width: 100px;
         padding: 4px 6px;
         border-radius: 8px;
-        border: none;
+        border: 1px solid main.$color-gray-500;
         background-color: main.$color-white-200;
         cursor: pointer;
         font-size: 13px;
         transition: all 0.2s ease-in-out;
         height: 25px;
-        color: main.$color-black-900;
+        // color: main.$color-black-900;
+        color: main.$color-gray-700;
 
         &:hover{
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
@@ -271,6 +512,10 @@
     height: 80px;
     overflow-y: auto;
     margin-top: 3px;
+    overflow-y: auto;
+    background-color: rgb(207, 219, 236,0.5);
+    border-radius: 5px;
+    padding: 8px;
 
     &__checkBox {
         display: flex;
@@ -286,7 +531,7 @@
             padding: 4px 6px;
             border-radius: 8px;
             border: none;
-            background-color: main.$color-white-200;
+            background-color: main.$color-white-000;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s ease-in-out;

@@ -10,6 +10,9 @@ api:
     bid_key: "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw=="
     procurement_url: "http://apis.data.go.kr/1230000/ao/HrcspSsstndrdInfoService"
     procurement_key: "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw=="
+    token_url: "https://kauth.kakao.com/oauth/token"
+    client_id: "73b6020b74d6524073a6b7b8f7dce121"
+    refresh_token: "qHt0mwibVIyBknjHLjIyIGdm5CbldDV3AAAAAgoqJU4AAAGVYRMOhirXsvB0zxAC"
 
 spring:
   datasource:

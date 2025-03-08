@@ -26,21 +26,21 @@ public class ProjectSearchKeywordsService {
                 .orElseThrow(() -> new IllegalArgumentException("ProjectSearchKeyword not found with id: " + id));
     }
 
-    public List<ProjectSearchKeyword> seletedKeywords() {
-        return projectSearchKeywordsRepository.findByIsUsedTrueOrderByIdDesc();
+    public List<ProjectSearchKeyword> seletedKeywords(BidType bidType) {
+        return projectSearchKeywordsRepository.findByBidTypeAndIsUsedTrueOrderByIdDesc(bidType);
     }
 
 // isUsed를 true로 업데이트
     @Transactional
-    public void updateIsUsed(String[] keywords) {
-        List<ProjectSearchKeyword> byIsUsedTrue = projectSearchKeywordsRepository.findByIsUsedTrueOrderByIdDesc();
+    public void updateIsUsed(String[] keywords, BidType bidType) {
+        List<ProjectSearchKeyword> byIsUsedTrue = projectSearchKeywordsRepository.findByBidTypeAndIsUsedTrueOrderByIdDesc(bidType);
         for (ProjectSearchKeyword projectSearchKeyword : byIsUsedTrue) {
             projectSearchKeyword.updateIsUsed(false);
         }
 
         // keywords 배열에 있는 각 키워드에 대해 ProjectSearchKeyword를 조회하여 isUsed를 true로 설정
         for (String keyword : keywords) {
-            Optional<ProjectSearchKeyword> optionalKeyword = projectSearchKeywordsRepository.findBySearchKeyword(keyword);
+            Optional<ProjectSearchKeyword> optionalKeyword = projectSearchKeywordsRepository.findByBidTypeAndSearchKeyword(BidType.PRE_STANDARD, keyword);
 
             if (optionalKeyword.isPresent()) {
                 // 2-1. 존재하는 키워드가 있으면 isUsed를 true로 업데이트

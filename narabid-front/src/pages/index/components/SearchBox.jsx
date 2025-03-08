@@ -9,6 +9,7 @@ import 'react-simple-toasts/dist/theme/dark.css'
 toastConfig({ theme: 'dark' });
 
 import { useBidInfo } from '@/store/apiContext';
+import { fetchProductRequests, fetchProKeywordsRequests, fetchBidRequests, fetchBidKeywordsRequests } from '@/pages/index/apis/openAPIRequests';
 
 function SearchBox() {
     const today = new Date();
@@ -20,12 +21,14 @@ function SearchBox() {
     // 상세 검색
     const [startDate, setStartDate] = useState(oneMonthAgo);
     const [endDate, setEndDate] = useState(today);
-    const [searchInput, setSearchInput] = useState("");
+    const [proSearchInput, setProSearchInput] = useState("");
+    const [bidSearchInput, setBidSearchInput] = useState("");
     const [proItems, setProItems] = useState([]);
     const [bidItems, setBidItems] = useState([]);
     const [bidRegions, setBidRegions] = useState([]);
     const [bidMethods, setBidMethods] = useState([]);
-    const [searchTerms, setSearchTerms] = useState([]);
+    const [proSearchTerms, setProSearchTerms] = useState([]);
+    const [bidSearchTerms, setBidSearchTerms] = useState([]);
     //카테고리
     const [preDetailCategory, setPreDetailCategory] = useState([{
         "프로세스제어반": "4111249801",
@@ -47,6 +50,7 @@ function SearchBox() {
     const isSearched = useRef(false); // handleSearch가 실행되었는지 여부
 
     useEffect(() => {
+        console.log(categories);
 
         if (categories.length !== 0) {
             setPreDetailCategory((categories.preDetailProducts || []).reduce((acc, item) => {
@@ -66,7 +70,8 @@ function SearchBox() {
                 return acc;
             }, {}));
             setBidMethodCategory(categories.contractMethods || []);
-            setSearchTerms(categories.keywords || []);
+            setProSearchTerms(categories.proKeywords || []);
+            setBidSearchTerms(categories.bidKeywords || []);
 
             const fetchAndSearch = async () => {
                 await applyDefault(); // ✅ applyDefault() 완료될 때까지 대기
@@ -116,27 +121,32 @@ function SearchBox() {
     };
 
     // 검색어 추가
-    const addSearchTerm = () => addItem(searchInput, setSearchTerms, setSearchInput);
+    const addProSearchTerm = () => addItem(proSearchInput, setProSearchTerms, setProSearchInput);
+    const addBidSearchTerm = () => addItem(bidSearchInput, setBidSearchTerms, setBidSearchInput);
     const addBidItem = (category) => toggleCategory(category, setBidItems);
     const addProItem = (category) => toggleCategory(category, setProItems);
     const addBidRegion = (category) => toggleCategory(category, setBidRegions);
     const addBidMethod = (category) => toggleCategory(category, setBidMethods);
 
     // enter로 검색어 추가
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (type, e) => {
         if (e.nativeEvent.isComposing) return;
         if (e.key === 'Enter') {
-            e.preventDefault(); // 기본 이벤트 방지 (특정 환경에서 중복 실행 방지)
-            addSearchTerm()
+            e.preventDefault(); // 기본 이벤트 방지 (중복 실행 방지)
+            if (type === "pro") {
+                addProSearchTerm();
+            } else if (type === "bid") {
+                addBidSearchTerm();
+            }
         }
-    }
+    };
+
 
     // 검색어 삭제
     const removeSearchTerm = (text, index) => {
         // if (text == 'terms') setSearchTerms(searchTerms.filter((_, i) => i !== index));
-        if (text === 'terms') {
-            setSearchTerms(prevTerms => prevTerms.filter((_, i) => i !== index));
-        }
+        if (text === 'proTerms') setProSearchTerms(prevTerms => prevTerms.filter((_, i) => i !== index));
+        if (text === 'bidTerms') setBidSearchTerms(prevTerms => prevTerms.filter((_, i) => i !== index));
         else if (text == 'proItem') setProItems(proItems.filter((_, i) => i !== index));
         else if (text == 'bidItem') setBidItems(bidItems.filter((_, i) => i !== index));
         else if (text == 'bidRegion') setBidRegions(bidRegions.filter((_, i) => i !== index));
@@ -152,7 +162,8 @@ function SearchBox() {
             return matchdRegion;
         })
         const reqData = {
-            "keywords": searchTerms,
+            "proKeywords": proSearchTerms,
+            "bidKeywords": bidSearchTerms,
             "bidDetailProducts": bidItems,
             "preDetailProducts": proItems,
             "restrictRegions": mappedBidRegions,
@@ -177,7 +188,8 @@ function SearchBox() {
             const response = await axios.get(`${BASE_API_URL}/api/bids/selectedCategory`);
             const resData = response.data;
 
-            setSearchTerms(resData.keywords);
+            setProSearchTerms(resData.proKeywords);
+            setBidSearchTerms(resData.bidKeywords);
             setBidItems(resData.bidDetailProducts.map(item => item.split(":")[1]));
             setProItems(resData.preDetailProducts.map(item => item.split(":")[1]));
             setBidRegions(resData.restrictRegions.map(item => item.split(":")[1]));
@@ -193,87 +205,17 @@ function SearchBox() {
     const handleSearch = async () => {
         setIsLoading(true); // 로딩 시작
         // 날짜 포맷 수정
-        const formattedStartDate = formatDate(startDate);
-        const formattedEndDate = formatDate(endDate);
         const formattedStartDateApi = formatDate(startDate, false);
         const formattedEndDateApi = formatDate(endDate, true);
 
-        // 백엔드 호출용
-        // // 검색 객체 구성
-        // const data = {
-        //     startDate: formattedStartDate,
-        //     endDate: formattedEndDate,
-        //     proItems,
-        //     bidItems,
-        //     bidRegions,
-        //     bidMethods,
-        //     searchTerms,
-        // };
-        // const res = await axios.post(`${API_BASE_URL}/api/bids/search`, data, {  
-        // });
-
-
-
-
-
         try {
             // OpenAPI 용
-            // 🔹 1. 발주 > 사전규격 > 물품 조회 요청
-            const productRequests = proItems.map((item) => {
-                return axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoThngPPSSrch`, {
-                    params: {
-                        serviceKey: PRE_API_KEY,
-                        pageNo: "1",
-                        numOfRows: "100",
-                        type: "json",
-                        inqryDiv: "1",
-                        inqryBgnDt: formattedStartDateApi,
-                        inqryEndDt: formattedEndDateApi,
-                        dtilPrdctClsfcNo: item
-                    }
-                });
-            });
-
-            // 🔹 2. 발주 > 사전규격 > 용역 - 키워드 조회 요청
-            const serviceRequests = searchTerms.map((item) => {
-                return axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoServcPPSSrch`, {
-                    params: {
-                        serviceKey: PRE_API_KEY,
-                        pageNo: "1",
-                        numOfRows: "100",
-                        type: "json",
-                        inqryDiv: "1",
-                        inqryBgnDt: formattedStartDateApi,
-                        inqryEndDt: formattedEndDateApi,
-                        prdctClsfcNoNm: item
-                    }
-                });
-            });
-
-            // 🔹 3. 입찰공고 > 물품(세부품명) 조회 요청
-            const bidRequests = bidRegions.flatMap(region =>
-                bidItems.map(item => {
-                    return axios.get(`${BID_API_URL}/getBidPblancListInfoThngPPSSrch`, {
-                        params: {
-                            serviceKey: BID_API_KEY,
-                            pageNo: "1",
-                            numOfRows: "100",
-                            type: "json",
-                            inqryDiv: "1",
-                            inqryBgnDt: formattedStartDateApi,
-                            inqryEndDt: formattedEndDateApi,
-                            prtcptLmtRgnCd: region,
-                            dtilPrdctClsfcNo: item
-                        }
-                    });
-                })
-            );
-
-            // 🔹 모든 요청을 병렬 실행
-            const [productResponses, serviceResponses, bidResponses] = await Promise.all([
-                Promise.all(productRequests),
-                Promise.all(serviceRequests),
-                Promise.all(bidRequests)
+            // 🔹 병렬로 API 요청 실행
+            const [productResponses, proKeywordResponses, bidResponses, bidKeywordResponse] = await Promise.all([
+                fetchProductRequests(proItems, formattedStartDateApi, formattedEndDateApi, PRE_API_URL, PRE_API_KEY),
+                fetchProKeywordsRequests(proSearchTerms, formattedStartDateApi, formattedEndDateApi, PRE_API_URL, PRE_API_KEY),
+                fetchBidRequests(bidRegions, bidItems, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY),
+                fetchBidKeywordsRequests(bidRegions, bidSearchTerms, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY)
             ]);
 
             // 🔹 사전규격(물품, 용역) 데이터에 구분값 추가
@@ -284,7 +226,7 @@ function SearchBox() {
                 }))
             );
 
-            const serviceResults = serviceResponses.flatMap(response =>
+            const proKeywordResults = proKeywordResponses.flatMap(response =>
                 (response?.data?.response?.body?.items ?? []).map(item => ({
                     ...item,
                     type: 1 // ✅ 사전규격 - 용역
@@ -295,13 +237,70 @@ function SearchBox() {
             const bidResults = bidResponses
                 .flatMap(response => response?.data?.response?.body?.items ?? [])
                 .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
-                .filter(item => bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
                 .map(item => ({
                     ...item,
                     type: 3 // ✅ 입찰공고 - 물품
                 }));
+
+
+            const bidKeywordResult = bidKeywordResponse
+                .flatMap(response => response?.data?.response?.body?.items ?? [])
+                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                .map(item => ({
+                    ...item,
+                    type: 4 // ✅ 입찰공고 - 용역
+                }));
+
+            // console.log(bidKeywordResult);
+
+
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
-            const allResults = [...productResults, ...serviceResults, ...bidResults];
+            const allResults = [...productResults, ...proKeywordResults, ...bidResults, ...bidKeywordResult];
+
+            // console.log('검색 결과', allResults);
+            // 상태 업데이트
+            setBidInfos(allResults);
+        } catch (error) {
+            console.error('검색 요청 실패', error);
+        } finally {
+            setIsLoading(false);
+        }
+
+    }
+    // 서버로 검색 객체 전송 - 사전규격
+    const handleProSearch = async () => {
+        setIsLoading(true); // 로딩 시작
+        // 날짜 포맷 수정
+        const formattedStartDateApi = formatDate(startDate, false);
+        const formattedEndDateApi = formatDate(endDate, true);
+
+        try {
+            // OpenAPI 용
+            // 🔹 병렬로 API 요청 실행
+            const [productResponses, proKeywordResponses] = await Promise.all([
+                fetchProductRequests(proItems, formattedStartDateApi, formattedEndDateApi, PRE_API_URL, PRE_API_KEY),
+                fetchProKeywordsRequests(proSearchTerms, formattedStartDateApi, formattedEndDateApi, PRE_API_URL, PRE_API_KEY),
+            ]);
+
+            // 🔹 사전규격(물품, 용역) 데이터에 구분값 추가
+            const productResults = productResponses.flatMap(response =>
+                (response?.data?.response?.body?.items ?? []).map(item => ({
+                    ...item,
+                    type: 2 // ✅ 사전규격 - 물품
+                }))
+            );
+
+            const proKeywordResults = proKeywordResponses.flatMap(response =>
+                (response?.data?.response?.body?.items ?? []).map(item => ({
+                    ...item,
+                    type: 1 // ✅ 사전규격 - 용역
+                }))
+            );
+
+            // 🔹 모든 데이터를 합쳐서 상태 업데이트
+            const allResults = [...productResults, ...proKeywordResults];
 
             console.log('검색 결과', allResults);
             // 상태 업데이트
@@ -313,6 +312,158 @@ function SearchBox() {
         }
 
     }
+    // 서버로 검색 객체 전송 - 입찰공고
+    const handleBidSearch = async () => {
+        setIsLoading(true); // 로딩 시작
+        // 날짜 포맷 수정
+        const formattedStartDateApi = formatDate(startDate, false);
+        const formattedEndDateApi = formatDate(endDate, true);
+
+        try {
+            // OpenAPI 용
+            // 🔹 병렬로 API 요청 실행
+            const [bidResponses, bidKeywordResponse] = await Promise.all([
+                fetchBidRequests(bidRegions, bidItems, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY),
+                fetchBidKeywordsRequests(bidRegions, bidSearchTerms, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY)
+            ]);
+
+            // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
+            const bidResults = bidResponses
+                .flatMap(response => response?.data?.response?.body?.items ?? [])
+                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                .map(item => ({
+                    ...item,
+                    type: 3 // ✅ 입찰공고 - 물품
+                }));
+
+
+            const bidKeywordResult = bidKeywordResponse
+                .flatMap(response => response?.data?.response?.body?.items ?? [])
+                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                .map(item => ({
+                    ...item,
+                    type: 4 // ✅ 입찰공고 - 용역
+                }));
+
+            console.log(bidKeywordResult);
+
+
+            // 🔹 모든 데이터를 합쳐서 상태 업데이트
+            const allResults = [...bidResults, ...bidKeywordResult];
+
+            console.log('검색 결과', allResults);
+            // 상태 업데이트
+            setBidInfos(allResults);
+        } catch (error) {
+            console.error('검색 요청 실패', error);
+        } finally {
+            setIsLoading(false);
+        }
+
+    }
+
+
+    // 사전규격 검색 버튼 hover 효과
+    useEffect(() => {
+        const buttons = document.querySelectorAll(`.${styles.searchBox__btn__search1}`);
+
+        buttons.forEach((button) => {
+            button.addEventListener("mouseenter", () => {
+                const tr1 = button.closest("tr"); // 첫 번째 tr
+                const tr2 = tr1?.nextElementSibling; // 두 번째 tr
+                const firstTd = tr1?.firstElementChild; // 첫 번째 td
+                const secondTd = firstTd?.nextElementSibling; // 두 번째 td
+                const thirdTd = secondTd?.nextElementSibling; // 세 번째 td
+                const fourthTrTd = tr2?.firstElementChild; // 네 번째 tr의 첫 번째 td
+
+                if (firstTd) firstTd.classList.add(`${styles.firstHighlight}`);
+                if (secondTd) secondTd.classList.add(`${styles.secondHighlight}`);
+                if (thirdTd) thirdTd.classList.add(`${styles.thirdHighlight}`);
+                if (fourthTrTd) fourthTrTd.classList.add(`${styles.fourthHighlight}`);
+
+            });
+
+            button.addEventListener("mouseleave", () => {
+                const tr1 = button.closest("tr");
+                const tr2 = tr1?.nextElementSibling;
+                const firstTd = tr1?.firstElementChild; // 첫 번째 td
+                const secondTd = firstTd?.nextElementSibling; // 두 번째 td
+                const thirdTd = secondTd?.nextElementSibling; // 세 번째 td
+                const fourthTrTd = tr2?.firstElementChild; // 네 번째 tr의 첫 번째 td
+
+                if (firstTd) firstTd.classList.remove(`${styles.firstHighlight}`);
+                if (secondTd) secondTd.classList.remove(`${styles.secondHighlight}`);
+                if (thirdTd) thirdTd.classList.remove(`${styles.thirdHighlight}`);
+                if (fourthTrTd) fourthTrTd.classList.remove(`${styles.fourthHighlight}`);
+                // if (tr1) tr1.classList.remove(`${styles.highlightTr__firstHighlight}`);
+                // if (tr2) tr2.classList.remove(`${styles.highlightTr__secondHighlight}`);
+            });
+        });
+
+        return () => {
+            buttons.forEach((button) => {
+                button.removeEventListener("mouseenter", () => { });
+                button.removeEventListener("mouseleave", () => { });
+            });
+        };
+    }, []);
+    // 입찰공고 검색 버튼 hover 효과
+    useEffect(() => {
+        const buttons = document.querySelectorAll(`.${styles.searchBox__btn__search2}`);
+
+        buttons.forEach((button) => {
+            button.addEventListener("mouseenter", () => {
+                const tr1 = button.closest("tr"); // 첫 번째 tr
+                const tr2 = tr1?.nextElementSibling; // 두 번째 tr
+                const tr3 = tr2?.nextElementSibling;    // 세 번째 tr
+                const tr4 = tr3?.nextElementSibling;    // 네 번째 tr
+                const firstTd = tr1?.firstElementChild; // 첫 번째 td
+                const secondTd = firstTd?.nextElementSibling; // 두 번째 td
+                const thirdTd = secondTd?.nextElementSibling; // 세 번째 td
+                const fourthTd = thirdTd?.nextElementSibling; // 네 번째 td
+                const fourthTrTd = tr2?.firstElementChild; // 두 번째 tr의 첫 번째 td
+                const fourthTr2Td = tr4?.firstElementChild; // 네 번째 tr의 첫 번째 td
+
+                if (firstTd) firstTd.classList.add(`${styles.firstHighlight}`);
+                if (secondTd) secondTd.classList.add(`${styles.secondHighlight}`);
+                if (thirdTd) thirdTd.classList.add(`${styles.secondHighlight}`);
+                if (fourthTd) fourthTd.classList.add(`${styles.thirdHighlight}`);
+                if (fourthTrTd) fourthTrTd.classList.add(`${styles.fourthHighlight}`);
+                if (fourthTr2Td) fourthTr2Td.classList.add(`${styles.fourthHighlight}`);
+
+            });
+
+            button.addEventListener("mouseleave", () => {
+                const tr1 = button.closest("tr");   // 첫 번째 tr
+                const tr2 = tr1?.nextElementSibling;    // 두 번째 tr
+                const tr3 = tr2?.nextElementSibling;    // 세 번째 tr
+                const tr4 = tr3?.nextElementSibling;    // 네 번째 tr
+                const firstTd = tr1?.firstElementChild; // 첫 번째 td
+                const secondTd = firstTd?.nextElementSibling; // 두 번째 td
+                const thirdTd = secondTd?.nextElementSibling; // 세 번째 td
+                const fourthTd = thirdTd?.nextElementSibling; // 네 번째 td
+                const fourthTrTd = tr2?.firstElementChild; // 두 번째 tr의 첫 번째 td
+                const fourthTr2Td = tr4?.firstElementChild; // 네 번째 tr의 첫 번째 td
+
+                if (firstTd) firstTd.classList.remove(`${styles.firstHighlight}`);
+                if (secondTd) secondTd.classList.remove(`${styles.secondHighlight}`);
+                if (thirdTd) thirdTd.classList.remove(`${styles.secondHighlight}`);
+                if (fourthTd) fourthTd.classList.remove(`${styles.thirdHighlight}`);
+                if (fourthTrTd) fourthTrTd.classList.remove(`${styles.fourthHighlight}`);
+                if (fourthTr2Td) fourthTr2Td.classList.remove(`${styles.fourthHighlight}`);
+            });
+        });
+
+        return () => {
+            buttons.forEach((button) => {
+                button.removeEventListener("mouseenter", () => { });
+                button.removeEventListener("mouseleave", () => { });
+            });
+        };
+    }, []);
+
 
 
     return (
@@ -346,30 +497,35 @@ function SearchBox() {
                     <table className={styles.table}>
                         <tbody>
                             <tr>
-                                <td rowSpan={3} className={styles.table__title}>사전규격 <br />&nbsp;- 일반용역, 기술용역</td>
-                                <td className={styles.table__searchBar}>
-                                    <div className={styles.searchBar}>
-                                        <input type='text' placeholder='검색어를 입력하세요' className={styles.searchBar__input}
-                                            value={searchInput}
-                                            onChange={(e) => setSearchInput(e.target.value)}
-                                            onKeyDown={handleKeyDown} />
-                                        <button onClick={addSearchTerm} className={styles.searchBar__btn}>
-                                            <img src='/icons/icon-plus.png' alt="" />
-                                        </button>
-                                    </div>
-                                </td>
-                                <td></td>
+                                <th className={styles.table__empty}></th>
+                                <th colSpan={2} className={styles.table__rowtitle}>물품</th>
+                                <th className={styles.table__rowtitle}>일반용역, 기술용역</th>
+                                <th></th>
                             </tr>
                             <tr>
-                                <td rowSpan={2} colSpan={2} className={styles.table__searchResult} style={{ backgroundColor: "main.$color-gray-100" }}>
-                                    <div className={styles.resultBox}>
+                                <td rowSpan={4} className={styles.table__title} >사전규격</td>
+                                <td colSpan={2} className={styles.table__wrapMid}>
+                                    {/* 세부품목선택 */}
+                                    <div className={styles.table__title__mid}>세부 품목</div>
+                                </td>
+                                <td rowSpan={4} className={styles.table__searchBar}>
+                                    <div className={styles.searchBar}>
+                                        <button onClick={addProSearchTerm} className={styles.searchBar__btn}>
+                                            <img src='/icons/icon-plus.png' alt="" />
+                                        </button>
+                                        <input type='text' placeholder='검색어를 입력하세요' className={styles.searchBar__input}
+                                            value={proSearchInput}
+                                            onChange={(e) => setProSearchInput(e.target.value)}
+                                            onKeyDown={(e) => handleKeyDown('pro', e)} />
+                                    </div>
+                                    <div className={styles.resultBox__firstTerm}>
                                         <div className={styles.searchBar__results}>
                                             {/* 검색어에 추가 결과 표시부분 */}
-                                            {searchTerms.map((term, index) => (
+                                            {proSearchTerms.map((term, index) => (
                                                 <div key={index} className={styles.searchBar__results__tag}>
                                                     {term}
                                                     <button className={styles.searchBar__search__btn}
-                                                        onClick={() => removeSearchTerm('terms', index)}>
+                                                        onClick={() => removeSearchTerm('proTerms', index)}>
                                                         <img src='/icons/icon-cross.png' alt="" />
                                                     </button>
                                                 </div>
@@ -377,17 +533,12 @@ function SearchBox() {
                                         </div>
                                     </div>
                                 </td>
-                            </tr>
-                            <tr></tr>
-                            <tr>
-                                <td rowSpan={3} className={styles.table__title} >사전규격 - 물품</td>
-                                <td className={styles.table__wrapMid} colSpan={2}>
-                                    {/* 세부품목선택 */}
-                                    <div className={styles.table__title__mid}>세부 품목</div>
+                                <td rowSpan={4}>
+                                    <button className={styles.searchBox__btn__search1} onClick={handleProSearch}>사전규격<br />검색</button>
                                 </td>
                             </tr>
                             <tr>
-                                <td rowSpan={2} colSpan={2} className={styles.table__checkResult}>
+                                <td colSpan={2} rowSpan={3} className={styles.table__checkResult}>
                                     <div className={styles.resultBox}>
                                         <div className={styles.checkBox}>
                                             {Object.entries(preDetailCategory).map(([key, value]) => (
@@ -404,8 +555,9 @@ function SearchBox() {
                                 </td>
                             </tr>
                             <tr></tr>
+                            <tr></tr>
                             <tr>
-                                <td rowSpan={4} className={styles.table__title}>입찰공고 - 물품</td>
+                                <td rowSpan={4} className={styles.table__title}>입찰공고</td>
                                 <td className={styles.table__wrapMid}>
                                     {/* 세부품목선택 */}
                                     <div className={styles.table__title__mid}>세부 품목</div>
@@ -413,10 +565,38 @@ function SearchBox() {
                                 <td className={styles.table__wrapMid}>
                                     <div className={styles.table__title__mid}>제한지역</div>
                                 </td>
+                                <td className={styles.table__searchBar} rowSpan={4}>
+                                    <div className={styles.searchBar}>
+                                        <button onClick={addBidSearchTerm} className={styles.searchBar__btn}>
+                                            <img src='/icons/icon-plus.png' alt="" />
+                                        </button>
+                                        <input type='text' placeholder='검색어를 입력하세요' className={styles.searchBar__input}
+                                            value={bidSearchInput}
+                                            onChange={(e) => setBidSearchInput(e.target.value)}
+                                            onKeyDown={(e) => handleKeyDown('bid', e)} />
+                                    </div>
+                                    <div className={styles.resultBox__secondTerm}>
+                                        <div className={styles.searchBar__results}>
+                                            {/* 검색어에 추가 결과 표시부분 */}
+                                            {bidSearchTerms.map((term, index) => (
+                                                <div key={index} className={styles.searchBar__results__tag}>
+                                                    {term}
+                                                    <button className={styles.searchBar__search__btn}
+                                                        onClick={() => removeSearchTerm('bidTerms', index)}>
+                                                        <img src='/icons/icon-cross.png' alt="" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td rowSpan={4}>
+                                    <button className={styles.searchBox__btn__search2} onClick={handleBidSearch}>입찰공고<br />검색</button>
+                                </td>
                             </tr>
                             <tr>
-                                <td rowSpan={3}>
-                                    <div className={styles.resultBox}>
+                                <td rowSpan={3} className={styles.table__wrapResultBox}>
+                                    <div className={styles.resultBox__mid}>
                                         <div className={styles.checkBox}>
                                             {Object.entries(bidDetailCategory).map(([key, value]) => (
                                                 <button
@@ -430,7 +610,7 @@ function SearchBox() {
                                         </div>
                                     </div>
                                 </td>
-                                <td>
+                                <td className={styles.table__wrapResultBox}>
                                     <div className={styles.resultMid}>
                                         <div className={styles.resultMid__checkBox}>
 
@@ -454,7 +634,7 @@ function SearchBox() {
                                 </td>
                             </tr>
                             <tr>
-                                <td>
+                                <td className={styles.table__wrapResultBox}>
                                     <div className={styles.resultMid}>
                                         <div className={styles.resultMid__checkBox}>
                                             {bidMethodCategory.map((category) => (
@@ -475,14 +655,14 @@ function SearchBox() {
                     </table>
                 </div>
             </div>
-            <div className={styles.searchBox__btn}>
-                <div className={styles.searchBox__wrapBtn}>
-                    {/* 버튼 생성 */}
-                    <button className={styles.searchBox__btn__edit} onClick={handleDetail}>기본 검색 <br />조건으로 설정</button>
-                    <button className={styles.searchBox__btn__default} onClick={applyDefault}>기본 검색 조건 <br />적용</button>
-                    <button className={styles.searchBox__btn__search} onClick={handleSearch}>검색</button>
-                </div>
-            </div>
+            {/* <div className={styles.searchBox__btn}> */}
+            {/* <div className={styles.searchBox__wrapBtn}> */}
+            {/* 버튼 생성 */}
+            {/* <button className={styles.searchBox__btn__edit} onClick={handleDetail}>기본 검색 <br />조건으로 설정</button> */}
+            {/* <button className={styles.searchBox__btn__default} onClick={applyDefault}>기본 검색 조건 <br />적용</button> */}
+            {/* <button className={styles.searchBox__btn__search} onClick={handleSearch}>검색</button> */}
+            {/* </div> */}
+            {/* </div> */}
         </div >
     )
 }

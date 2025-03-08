@@ -44,6 +44,35 @@ const MyTable = () => {
       const preFileUrls = [item.specDocFileUrl1, item.specDocFileUrl2, item.specDocFileUrl3, item.specDocFileUrl4, item.specDocFileUrl5].filter(url => url);
 
       // 🔹 입찰공고 데이터 추가 - type : 3
+      if (item.type === 4) {
+        // 파일 목록 생성 (파일명과 URL을 매핑)
+        const fileList = [];
+        for (let i = 1; i <= 10; i++) {
+          const fileName = item[`ntceSpecFileNm${i}`];
+          const fileUrl = item[`ntceSpecDocUrl${i}`];
+
+          if (fileName && fileName.trim() !== "" && fileUrl && fileUrl.trim() !== "") {
+            fileList.push({ name: fileName, url: fileUrl });
+          }
+        }
+        results.push({
+          no: index + 1,
+          category: item.srvceDivNm,  // 물품 || 용역
+          bidType: "입찰공고",
+          title: item.bidNtceNm,
+          organization: item.dminsttNm,
+          bidNumber: item.bidNtceNo,
+          amount: item.asignBdgtAmt,
+          announcementDate: item.bidNtceDt,
+          // announcementDate: item.bidBeginDt,
+          deadline: item.bidClseDt,
+          contractMethod: item.cntrctCnclsMthdNm,
+          pageUrl: item.bidNtceDtlUrl,
+          fileList, // 파일 목록 저장
+        });
+      }
+
+      // 🔹 입찰공고 데이터 추가 - type : 3
       if (item.type === 3) {
         // 파일 목록 생성 (파일명과 URL을 매핑)
         const fileList = [];
@@ -63,7 +92,7 @@ const MyTable = () => {
           organization: item.dminsttNm,
           bidNumber: item.bidNtceNo,
           amount: item.asignBdgtAmt,
-          announcementDate: item.bidBeginDt,
+          announcementDate: item.bidNtceDt,
           deadline: item.bidClseDt,
           contractMethod: item.cntrctCnclsMthdNm,
           pageUrl: item.bidNtceDtlUrl,
@@ -298,9 +327,12 @@ const MyTable = () => {
             columnDefs={columnDefs}
             rowData={rowData || []}
             enableBrowserTooltips={false} // ✅ 툴팁 활성화
+            tooltipShowDelay={0} // ✅ 툴팁 즉시 표시
             gridOptions={gridOptions}
             defaultColDef={defaultColDef}
             getRowHeight={getRowHeight}
+            enableCellTextSelection={true}  // ✅ 텍스트 드래그 활성화
+            suppressRowClickSelection={true}  // ✅ 클릭 시 행 선택 방지
           />
         ))}
     </div>

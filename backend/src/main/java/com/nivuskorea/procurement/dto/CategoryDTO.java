@@ -9,13 +9,13 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @ToString
 public class CategoryDTO {
-    private String[] keywords;
+    private String[] proKeywords;
+    private String[] bidKeywords;
     private String[] contractMethods;
     private String[] restrictRegions;
     private String[] preDetailProducts;
@@ -24,8 +24,9 @@ public class CategoryDTO {
     public CategoryDTO() {
     }
 
-    public CategoryDTO(List<ProjectSearchKeyword> keywords, List<ContractType> contractMethods, List<RestrictedRegion> restrictRegions, List<DetailProduct> preDetailProducts, List<DetailProduct> bidDetailProducts) {
-        this.keywords = keywords.stream().map(ProjectSearchKeyword::getSearchKeyword).toArray(String[]::new);
+    public CategoryDTO(List<ProjectSearchKeyword> proKeywords,List<ProjectSearchKeyword> bidKeywords, List<ContractType> contractMethods, List<RestrictedRegion> restrictRegions, List<DetailProduct> preDetailProducts, List<DetailProduct> bidDetailProducts) {
+        this.proKeywords = proKeywords.stream().map(ProjectSearchKeyword::getSearchKeyword).toArray(String[]::new);
+        this.bidKeywords = bidKeywords.stream().map(ProjectSearchKeyword::getSearchKeyword).toArray(String[]::new);
         this.contractMethods = contractMethods.stream().map(contractType -> contractType.getContract().getDescription())
                 .toArray(String[]::new);
         this.restrictRegions = restrictRegions.stream()
