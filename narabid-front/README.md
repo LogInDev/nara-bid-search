@@ -8,7 +8,7 @@
 
 4. React Router 설치 : `npm install react-router-dom localforage match-sorter sort-by`
 
-5. React Table 라이브러리 AG Grid 모듈 설치 : `nnpm install ag-grid-community@latest ag-grid-react@latest`
+5. React Table 라이브러리 AG Grid 모듈 설치(32.0.0버전사용) : `npm install ag-grid-community@32.0.0 ag-grid-react@32.0.0`
 
 6. 달력 사용을 위한 라이브러리 설치 
     - `npm install react-datepicker`

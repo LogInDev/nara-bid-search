@@ -189,8 +189,6 @@ const MyTable = () => {
     },
     {
       headerName: "공고명", field: "title", sortable: true, width: 350, filter: "agTextColumnFilter",
-      // tooltipValueGetter: (params) => params.value, // ✅ 툴팁 추가
-      // tooltipComponentFramework: CustomTooltip, // ✅ CustomTooltip 사용
       cellRenderer: (params) => {
         if (!params.data?.pageUrl) {
           return <span>{params.value}</span>; // 🔹 기본 텍스트
@@ -333,6 +331,7 @@ const MyTable = () => {
             getRowHeight={getRowHeight}
             enableCellTextSelection={true}  // ✅ 텍스트 드래그 활성화
             suppressRowClickSelection={true}  // ✅ 클릭 시 행 선택 방지
+            paginationPageSizeSelector={[5, 10, 20, 50]} // 선택 가능한 페이지 크기
           />
         ))}
     </div>
