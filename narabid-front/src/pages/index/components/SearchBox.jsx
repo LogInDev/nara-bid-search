@@ -11,13 +11,13 @@ toastConfig({ theme: 'dark' });
 import { useBidInfo } from '@/store/apiContext';
 import { fetchProductRequests, fetchProKeywordsRequests, fetchBidRequests, fetchBidKeywordsRequests } from '@/pages/index/apis/openAPIRequests';
 
-function SearchBox() {
+function SearchBox({ handleDialog }) {
     const today = new Date();
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     oneMonthAgo.setDate(oneMonthAgo.getDate() + 1);
     // 상태관리 - bidInfo
-    const { setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, setIsLoading, categories, setCategories } = useBidInfo();
+    const { setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, PRODUCT_API_URL, PRODUCT_API_KEY, setIsLoading, categories, setCategories } = useBidInfo();
     // 상세 검색
     const [startDate, setStartDate] = useState(oneMonthAgo);
     const [endDate, setEndDate] = useState(today);
@@ -238,6 +238,10 @@ function SearchBox() {
                 .flatMap(response => response?.data?.response?.body?.items ?? [])
                 .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
                 .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                .filter(item => {
+                    if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
+                    return new Date(item.bidClseDt) >= today;
+                }) // 오늘 이후 마감일만 포함
                 .map(item => ({
                     ...item,
                     type: 3 // ✅ 입찰공고 - 물품
@@ -247,7 +251,10 @@ function SearchBox() {
             const bidKeywordResult = bidKeywordResponse
                 .flatMap(response => response?.data?.response?.body?.items ?? [])
                 .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
-                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                .filter(item => {
+                    if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
+                    return new Date(item.bidClseDt) >= today;
+                }) // 오늘 이후 마감일만 포함
                 .map(item => ({
                     ...item,
                     type: 4 // ✅ 입찰공고 - 용역
@@ -269,7 +276,7 @@ function SearchBox() {
         }
 
     }
-    // 서버로 검색 객체 전송 - 사전규격
+    // 서버로 검색 객체 전송 - 물품
     const handleProSearch = async () => {
         setIsLoading(true); // 로딩 시작
         // 날짜 포맷 수정
@@ -279,9 +286,9 @@ function SearchBox() {
         try {
             // OpenAPI 용
             // 🔹 병렬로 API 요청 실행
-            const [productResponses, proKeywordResponses] = await Promise.all([
+            const [productResponses, bidResponses] = await Promise.all([
                 fetchProductRequests(proItems, formattedStartDateApi, formattedEndDateApi, PRE_API_URL, PRE_API_KEY),
-                fetchProKeywordsRequests(proSearchTerms, formattedStartDateApi, formattedEndDateApi, PRE_API_URL, PRE_API_KEY),
+                fetchBidRequests(bidRegions, bidItems, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY),
             ]);
 
             // 🔹 사전규격(물품, 용역) 데이터에 구분값 추가
@@ -292,15 +299,22 @@ function SearchBox() {
                 }))
             );
 
-            const proKeywordResults = proKeywordResponses.flatMap(response =>
-                (response?.data?.response?.body?.items ?? []).map(item => ({
+            // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
+            const bidResults = bidResponses
+                .flatMap(response => response?.data?.response?.body?.items ?? [])
+                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                .filter(item => {
+                    if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
+                    return new Date(item.bidClseDt) >= today;
+                }) // 오늘 이후 마감일만 포함
+                .map(item => ({
                     ...item,
-                    type: 1 // ✅ 사전규격 - 용역
-                }))
-            );
+                    type: 3 // ✅ 입찰공고 - 물품
+                }));
 
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
-            const allResults = [...productResults, ...proKeywordResults];
+            const allResults = [...productResults, ...bidResults];
 
             console.log('검색 결과', allResults);
             // 상태 업데이트
@@ -312,7 +326,7 @@ function SearchBox() {
         }
 
     }
-    // 서버로 검색 객체 전송 - 입찰공고
+    // 서버로 검색 객체 전송 - 일반용역, 기술용역
     const handleBidSearch = async () => {
         setIsLoading(true); // 로딩 시작
         // 날짜 포맷 수정
@@ -322,36 +336,33 @@ function SearchBox() {
         try {
             // OpenAPI 용
             // 🔹 병렬로 API 요청 실행
-            const [bidResponses, bidKeywordResponse] = await Promise.all([
-                fetchBidRequests(bidRegions, bidItems, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY),
+            const [proKeywordResponses, bidKeywordResponse] = await Promise.all([
+                fetchProKeywordsRequests(proSearchTerms, formattedStartDateApi, formattedEndDateApi, PRE_API_URL, PRE_API_KEY),
                 fetchBidKeywordsRequests(bidRegions, bidSearchTerms, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY)
             ]);
 
-            // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
-            const bidResults = bidResponses
-                .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
-                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
-                .map(item => ({
+            const proKeywordResults = proKeywordResponses.flatMap(response =>
+                (response?.data?.response?.body?.items ?? []).map(item => ({
                     ...item,
-                    type: 3 // ✅ 입찰공고 - 물품
-                }));
+                    type: 1 // ✅ 사전규격 - 용역
+                }))
+            );
 
-
+            // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
             const bidKeywordResult = bidKeywordResponse
                 .flatMap(response => response?.data?.response?.body?.items ?? [])
                 .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
-                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                .filter(item => {
+                    if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
+                    return new Date(item.bidClseDt) >= today;
+                }) // 오늘 이후 마감일만 포함
                 .map(item => ({
                     ...item,
                     type: 4 // ✅ 입찰공고 - 용역
                 }));
 
-            console.log(bidKeywordResult);
-
-
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
-            const allResults = [...bidResults, ...bidKeywordResult];
+            const allResults = [...proKeywordResults, ...bidKeywordResult];
 
             console.log('검색 결과', allResults);
             // 상태 업데이트
@@ -363,107 +374,6 @@ function SearchBox() {
         }
 
     }
-
-
-    // 사전규격 검색 버튼 hover 효과
-    useEffect(() => {
-        const buttons = document.querySelectorAll(`.${styles.searchBox__btn__search1}`);
-
-        buttons.forEach((button) => {
-            button.addEventListener("mouseenter", () => {
-                const tr1 = button.closest("tr"); // 첫 번째 tr
-                const tr2 = tr1?.nextElementSibling; // 두 번째 tr
-                const firstTd = tr1?.firstElementChild; // 첫 번째 td
-                const secondTd = firstTd?.nextElementSibling; // 두 번째 td
-                const thirdTd = secondTd?.nextElementSibling; // 세 번째 td
-                const fourthTrTd = tr2?.firstElementChild; // 네 번째 tr의 첫 번째 td
-
-                if (firstTd) firstTd.classList.add(`${styles.firstHighlight}`);
-                if (secondTd) secondTd.classList.add(`${styles.secondHighlight}`);
-                if (thirdTd) thirdTd.classList.add(`${styles.thirdHighlight}`);
-                if (fourthTrTd) fourthTrTd.classList.add(`${styles.fourthHighlight}`);
-
-            });
-
-            button.addEventListener("mouseleave", () => {
-                const tr1 = button.closest("tr");
-                const tr2 = tr1?.nextElementSibling;
-                const firstTd = tr1?.firstElementChild; // 첫 번째 td
-                const secondTd = firstTd?.nextElementSibling; // 두 번째 td
-                const thirdTd = secondTd?.nextElementSibling; // 세 번째 td
-                const fourthTrTd = tr2?.firstElementChild; // 네 번째 tr의 첫 번째 td
-
-                if (firstTd) firstTd.classList.remove(`${styles.firstHighlight}`);
-                if (secondTd) secondTd.classList.remove(`${styles.secondHighlight}`);
-                if (thirdTd) thirdTd.classList.remove(`${styles.thirdHighlight}`);
-                if (fourthTrTd) fourthTrTd.classList.remove(`${styles.fourthHighlight}`);
-                // if (tr1) tr1.classList.remove(`${styles.highlightTr__firstHighlight}`);
-                // if (tr2) tr2.classList.remove(`${styles.highlightTr__secondHighlight}`);
-            });
-        });
-
-        return () => {
-            buttons.forEach((button) => {
-                button.removeEventListener("mouseenter", () => { });
-                button.removeEventListener("mouseleave", () => { });
-            });
-        };
-    }, []);
-    // 입찰공고 검색 버튼 hover 효과
-    useEffect(() => {
-        const buttons = document.querySelectorAll(`.${styles.searchBox__btn__search2}`);
-
-        buttons.forEach((button) => {
-            button.addEventListener("mouseenter", () => {
-                const tr1 = button.closest("tr"); // 첫 번째 tr
-                const tr2 = tr1?.nextElementSibling; // 두 번째 tr
-                const tr3 = tr2?.nextElementSibling;    // 세 번째 tr
-                const tr4 = tr3?.nextElementSibling;    // 네 번째 tr
-                const firstTd = tr1?.firstElementChild; // 첫 번째 td
-                const secondTd = firstTd?.nextElementSibling; // 두 번째 td
-                const thirdTd = secondTd?.nextElementSibling; // 세 번째 td
-                const fourthTd = thirdTd?.nextElementSibling; // 네 번째 td
-                const fourthTrTd = tr2?.firstElementChild; // 두 번째 tr의 첫 번째 td
-                const fourthTr2Td = tr4?.firstElementChild; // 네 번째 tr의 첫 번째 td
-
-                if (firstTd) firstTd.classList.add(`${styles.firstHighlight}`);
-                if (secondTd) secondTd.classList.add(`${styles.secondHighlight}`);
-                if (thirdTd) thirdTd.classList.add(`${styles.secondHighlight}`);
-                if (fourthTd) fourthTd.classList.add(`${styles.thirdHighlight}`);
-                if (fourthTrTd) fourthTrTd.classList.add(`${styles.fourthHighlight}`);
-                if (fourthTr2Td) fourthTr2Td.classList.add(`${styles.fourthHighlight}`);
-
-            });
-
-            button.addEventListener("mouseleave", () => {
-                const tr1 = button.closest("tr");   // 첫 번째 tr
-                const tr2 = tr1?.nextElementSibling;    // 두 번째 tr
-                const tr3 = tr2?.nextElementSibling;    // 세 번째 tr
-                const tr4 = tr3?.nextElementSibling;    // 네 번째 tr
-                const firstTd = tr1?.firstElementChild; // 첫 번째 td
-                const secondTd = firstTd?.nextElementSibling; // 두 번째 td
-                const thirdTd = secondTd?.nextElementSibling; // 세 번째 td
-                const fourthTd = thirdTd?.nextElementSibling; // 네 번째 td
-                const fourthTrTd = tr2?.firstElementChild; // 두 번째 tr의 첫 번째 td
-                const fourthTr2Td = tr4?.firstElementChild; // 네 번째 tr의 첫 번째 td
-
-                if (firstTd) firstTd.classList.remove(`${styles.firstHighlight}`);
-                if (secondTd) secondTd.classList.remove(`${styles.secondHighlight}`);
-                if (thirdTd) thirdTd.classList.remove(`${styles.secondHighlight}`);
-                if (fourthTd) fourthTd.classList.remove(`${styles.thirdHighlight}`);
-                if (fourthTrTd) fourthTrTd.classList.remove(`${styles.fourthHighlight}`);
-                if (fourthTr2Td) fourthTr2Td.classList.remove(`${styles.fourthHighlight}`);
-            });
-        });
-
-        return () => {
-            buttons.forEach((button) => {
-                button.removeEventListener("mouseenter", () => { });
-                button.removeEventListener("mouseleave", () => { });
-            });
-        };
-    }, []);
-
 
 
     return (
@@ -533,9 +443,6 @@ function SearchBox() {
                                         </div>
                                     </div>
                                 </td>
-                                <td rowSpan={4}>
-                                    <button className={styles.searchBox__btn__search1} onClick={handleProSearch}>사전규격<br />검색</button>
-                                </td>
                             </tr>
                             <tr>
                                 <td colSpan={2} rowSpan={3} className={styles.table__checkResult}>
@@ -560,7 +467,10 @@ function SearchBox() {
                                 <td rowSpan={4} className={styles.table__title}>입찰공고</td>
                                 <td className={styles.table__wrapMid}>
                                     {/* 세부품목선택 */}
-                                    <div className={styles.table__title__mid}>세부 품목</div>
+                                    <div className={styles.table__title__mid}>
+                                        세부 품목
+                                        <button onClick={handleDialog}>세부 품목 추가</button>
+                                    </div>
                                 </td>
                                 <td className={styles.table__wrapMid}>
                                     <div className={styles.table__title__mid}>제한지역</div>
@@ -589,9 +499,6 @@ function SearchBox() {
                                             ))}
                                         </div>
                                     </div>
-                                </td>
-                                <td rowSpan={4}>
-                                    <button className={styles.searchBox__btn__search2} onClick={handleBidSearch}>입찰공고<br />검색</button>
                                 </td>
                             </tr>
                             <tr>
@@ -648,6 +555,19 @@ function SearchBox() {
                                                 </button>
                                             ))}
                                         </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td colSpan={2}>
+                                    <div className={styles.searchBox__wrapSearchBtn}>
+                                        <button className={styles.searchBox__btn__search1} onClick={handleProSearch}>물품 검색</button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div className={styles.searchBox__wrapSearchBtn}>
+                                        <button className={styles.searchBox__btn__search2} onClick={handleBidSearch}>용역 검색</button>
                                     </div>
                                 </td>
                             </tr>

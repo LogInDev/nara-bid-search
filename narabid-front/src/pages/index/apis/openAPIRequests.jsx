@@ -56,21 +56,21 @@ export const fetchProKeywordsRequests = async (proSearchTerms, formattedStartDat
 // ✅ 입찰공고 > 물품(세부품명) 조회 요청
 export const fetchBidRequests = async (bidRegions, bidItems, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY) => {
     return Promise.all(
-        bidRegions.flatMap(region =>
-            bidItems.map(item =>
-                axios.get(`${BID_API_URL}/getBidPblancListInfoThngPPSSrch`, {
-                    params: {
-                        ...requests.bidRequest,
-                        serviceKey: BID_API_KEY,
-                        inqryBgnDt: formattedStartDateApi,
-                        inqryEndDt: formattedEndDateApi,
-                        prtcptLmtRgnCd: region,
-                        dtilPrdctClsfcNo: item
-                    }
-                })
-            )
+        // bidRegions.flatMap(region =>
+        bidItems.map(item =>
+            axios.get(`${BID_API_URL}/getBidPblancListInfoThngPPSSrch`, {
+                params: {
+                    ...requests.bidRequest,
+                    serviceKey: BID_API_KEY,
+                    inqryBgnDt: formattedStartDateApi,
+                    inqryEndDt: formattedEndDateApi,
+                    // prtcptLmtRgnCd: region,
+                    dtilPrdctClsfcNo: item
+                }
+            })
         )
     );
+    // );
 };
 
 // ✅ 입찰공고 > 용역 키워드 조회 요청

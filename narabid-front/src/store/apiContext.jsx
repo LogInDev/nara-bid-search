@@ -19,6 +19,9 @@ export const BidInfoProvider = ({ children }) => {
     const PRE_API_KEY = "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw==";
     const BID_API_URL = "http://apis.data.go.kr/1230000/ad/BidPublicInfoService";
     const BID_API_KEY = "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw==";
+    const PRODUCT_API_URL = "http://apis.data.go.kr/1230000/ao/ThngListInfoService";
+    const PRODUCT_API_KEY = "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw==";
+
 
     // 카테고리 정보 가져오기
     // types 배열로 변환
@@ -38,7 +41,7 @@ export const BidInfoProvider = ({ children }) => {
     }, [])
 
     return (
-        <BidInfoContext.Provider value={{ bidInfos, setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, isLoading, setIsLoading, categories, setCategories, setTypes }}>
+        <BidInfoContext.Provider value={{ bidInfos, setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, PRODUCT_API_URL, PRODUCT_API_KEY, isLoading, setIsLoading, categories, setCategories, setTypes }}>
             {children}
         </BidInfoContext.Provider>
     );

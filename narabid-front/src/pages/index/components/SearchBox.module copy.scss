@@ -17,12 +17,6 @@
 
         gap: 10px;
     }
-    // 검색버튼 css
-     &__wrapSearchBtn{
-            display: flex;
-            justify-content: flex-end;
-            width: 100%;
-        }
     &__btn{
         // width: 100%;
         &__edit{
@@ -42,17 +36,18 @@
             }
         }
         // 검색버튼 css
-       
         &__search1{
             border-radius: 5px;
             border: none;
+            // background-color: rgba(228, 231, 236,0.3);
             background-color: main.$color-blue-500;
             color : main.$color-white-200;
             font-size: 15px;
             font-weight: 500;
+            // background-color: transparent;
             cursor: pointer;
-            width: 30%;
-            height: 50px;
+            width: 100%;
+            height: 30px;
             transition: box-shadow 0.3s ease, transform 0.2s ease; /* 부드러운 애니메이션 */
 
             &:hover {
@@ -63,13 +58,15 @@
         &__search2{
             border-radius: 5px;
             border: none;
+            // background-color: rgba(228, 231, 236,0.3);
             background-color: main.$color-blue-500;
             color : main.$color-white-200;
             font-size: 15px;
             font-weight: 500;
+            // background-color: transparent;
             cursor: pointer;
-            width: 30%;
-            height: 50px;
+            width: 100%;
+            height: 30px;
             transition: box-shadow 0.3s ease, transform 0.2s ease; /* 부드러운 애니메이션 */
 
             &:hover {
@@ -107,6 +104,113 @@
     outline: 3px solid rgba(0, 112, 239, 0.8); /* ✅ `border` 대신 `outline` 사용 */
     box-shadow: 0 0 15px rgba(0, 112, 239, 0.7); /* ✅ 부드러운 빛 효과 */
     transition: box-shadow 0.3s ease, outline 0.3s ease;
+}
+/* ✅ 첫 번째 `td` → 왼쪽, 위, 아래 라인만 강조 */
+.firstHighlight {
+    border-left: 2px solid rgba(0, 112, 239, 0.8)!important;
+    border-top: 2px solid rgba(0, 112, 239, 0.8)!important;
+    border-bottom: 2px solid rgba(0, 112, 239, 0.8)!important;
+    /* 🔹 특정 `border`에만 그림자 효과 적용 */
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px -4px 6px rgba(0, 112, 239, 0.5);
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px 4px 6px rgba(0, 112, 239, 0.5);
+    }
+
+    animation: glowEffect 1s infinite alternate!important;
+}
+
+/* ✅ 두 번째 `td` → 위 라인만 강조 */
+.secondHighlight {
+    border-top: 2px solid rgba(0, 112, 239, 0.8)!important;
+    /* 🔹 특정 `border`에만 그림자 효과 적용 */
+    position: relative;
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px -4px 6px rgba(0, 112, 239, 0.5);
+    }
+    animation: glowEffect 1s infinite alternate!important;
+}
+/* ✅ 세 번째 `td` → 위, 오른쪽 라인만 강조 */
+.thirdHighlight {
+    border-right: 2px solid rgba(0, 112, 239, 0.8)!important;
+    border-top: 2px solid rgba(0, 112, 239, 0.8)!important;
+    border-bottom: 2px solid rgba(0, 112, 239, 0.8)!important;
+    /* 🔹 특정 `border`에만 그림자 효과 적용 */
+    position: relative;
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px -4px 6px rgba(0, 112, 239, 0.5);
+    }
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px 4px 6px rgba(0, 112, 239, 0.5);
+    }
+
+    animation: glowEffect 1s infinite alternate!important;
+}
+/* ✅ 네 번째 `td` → 아래 라인만 강조 */
+.fourthHighlight {
+    border-bottom: 2px solid rgba(0, 112, 239, 0.8)!important;
+    /* 🔹 특정 `border`에만 그림자 효과 적용 */
+    position: relative;
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px -4px 6px rgba(0, 112, 239, 0.5);
+    }
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 112, 239, 0.8);
+        box-shadow: 0px 4px 6px rgba(0, 112, 239, 0.5);
+    }
+    animation: glowEffect 1s infinite alternate!important;
 }
 /* 🔹 부드러운 빛 효과 애니메이션 */
 @keyframes glowEffect {
@@ -172,7 +276,7 @@
 
     border: 1px solid transparent; // ✅ 기본적으로 테두리를 투명하게 설정
     transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out; // ✅ 부드러운 효과
-    border-color: main.$color-gray-400;
+    border-color: main.$color-gray-700;
     border-radius: 5px;
     margin-bottom: 8px;
 
@@ -275,7 +379,7 @@
     }
     // 사전규격 키워드 결과박스
     &__firstTerm{
-        height: 150px;
+        height: 155px;
         overflow-y: auto;
         background-color: rgb(207, 219, 236,0.5);
         border-radius: 5px;
@@ -316,8 +420,7 @@
 
     &__rowtitle{
         min-width: 400px;
-        background-color: rgba(207, 219, 236, 0.5);
-        // background-color: main.$color-gray-200;
+        background-color: main.$color-gray-200;
         text-align:center;
         vertical-align: middle;
         border-bottom: 1px solid main.$color-gray-400;
@@ -330,8 +433,7 @@
     }
     &__title{
         width: 100px;
-        background-color: rgba(207, 219, 236, 0.5);
-        // background-color: main.$color-gray-200;
+        background-color: main.$color-gray-200;
         text-align:center;
         vertical-align: middle;
         // border-top: 1px solid main.$color-gray-700; 
@@ -340,21 +442,16 @@
 
         &__mid{
             margin-left: 10px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 400;
             // height: 29px;
-            button{
-                border: none;
-                margin-right: -10px;
-                padding: 3px;
-            }
         }
     }
     &__wrapMid{
         width: 250px;
-        background-color: main.$color-white-700;
+        background-color: #1d8ac9;
         // background-color: main.$color-gray-700;
-        color: main.$color-white-100;
+        color: main.$color-white-000;
         // border-bottom: 1px solid main.$color-gray-400;
         border-right: 1px solid main.$color-gray-400;
     }
@@ -393,13 +490,12 @@
         width: 100px;
         padding: 4px 6px;
         border-radius: 8px;
-        // border: none;
-        border: 1px solid main.$color-gray-300;
-        background-color: main.$color-white-000;
+        border: 1px solid main.$color-gray-500;
+        background-color: main.$color-white-200;
         cursor: pointer;
         font-size: 13px;
         transition: all 0.2s ease-in-out;
-        height: 30px;
+        height: 25px;
         // color: main.$color-black-900;
         color: main.$color-gray-700;
 
@@ -409,10 +505,8 @@
         }
     }
     &__selected{
-        background-color: #1d8ac9!important;
-        // background-color: main.$color-white-700!important;
-        color: main.$color-gray-100!important;
-        // color: white!important;
+        background-color: main.$color-white-700!important;
+        color: white!important;
     }
 }
 .resultMid{
@@ -437,13 +531,13 @@
             width: 100px;
             padding: 4px 6px;
             border-radius: 8px;
-            border: 1px solid main.$color-gray-300;
+            border: none;
             background-color: main.$color-white-000;
             cursor: pointer;
-            font-size: 13.5px;
+            font-size: 14px;
             transition: all 0.2s ease-in-out;
-            height: 30px;
-            color: main.$color-gray-700;
+            height: 25px;
+            color: main.$color-black-900;
 
             &:hover{
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
@@ -451,9 +545,8 @@
             }
         }
         &__selected{
-            background-color: #1d8ac9!important;
-            // background-color: main.$color-white-700!important;
-            color: main.$color-gray-100!important;
+            background-color: main.$color-white-700!important;
+            color: white!important;
         }
     }
 }
