@@ -1,5 +1,6 @@
 import styles from './Mytable.module.scss'
 import React, { useState, useRef, useCallback, useMemo } from "react";
+import { toast } from 'react-toastify';
 import { AgGridReact } from "ag-grid-react";
 import { ModuleRegistry } from "ag-grid-community";
 import { ClientSideRowModelModule, CsvExportModule } from "ag-grid-community"; // ✅ SetFilterModule 추가
@@ -9,12 +10,18 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useBidInfo } from '@/store/apiContext';
 import CustomTooltip from '@/components/common/tooltip/CustomTooltip';
 import Loading from './Loading';
+import { useMessageInfo } from '@/store/messageContext';
+import * as XLSX from 'xlsx';
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
+import CommonTooltip from '@/components/common/tooltip/CommonTooltip';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 
-const MyTable = () => {
+const MyTable = ({ onSendState }) => {
   const gridRef = useRef(null);
   const { bidInfos, isLoading } = useBidInfo();
+  const { selectedRows, setSelectedRows } = useMessageInfo();
 
   // 백엔드 api 용
   // const rowData = useMemo(() => bidInfos.map((item, index) => ({
@@ -167,28 +174,23 @@ const MyTable = () => {
     document.body.removeChild(link);
   }
 
-  // 📌 드롭다운 필터 핸들러
-  const handleFilterChange = (e) => {
-    const selectedValue = e.target.value;
-    if (gridRef.current) {
-      gridRef.current.api.setQuickFilter(selectedValue);
-    }
-  };
-
-  // 📌 '입찰유형' 드롭다운 필터 데이터
-  // const bidTypeOptions = [...new Set(rowData.map(item => item.bidType))];
-  const bidTypeOptions = useMemo(() => [...new Set(rowData.map(item => item.bidType))], [rowData]);
-
-
   const [columnDefs] = useState([
-    { headerName: "No", field: "no", sortable: true, filter: true, width: 70 },
-    { headerName: "구분", field: "category", sortable: true, filter: true, width: 100 },
+    {
+      headerName: "",
+      field: "checkbox",
+      width: 50,
+      checkboxSelection: true,
+      headerCheckboxSelection: true,
+      suppressSizeToFit: true, // 셀 크기 자동 조절 방지
+    },
+    { headerName: "No", field: "no", width: 70 },
+    { headerName: "구분", field: "category", width: 100 },
     {
       headerName: "입찰유형", field: "bidType", width: 100,
       cellRenderer: (params) => params.value,  // ✅ 기본 표시 방식 유지
     },
     {
-      headerName: "공고명", field: "title", sortable: true, width: 350, filter: "agTextColumnFilter",
+      headerName: "공고명", field: "title", width: 350, filter: "agTextColumnFilter",
       cellRenderer: (params) => {
         if (!params.data?.pageUrl) {
           return <span>{params.value}</span>; // 🔹 기본 텍스트
@@ -201,9 +203,9 @@ const MyTable = () => {
       },
     },
     {
-      headerName: "수요기관", field: "organization", width: 120, sortable: true, filter: true,
+      headerName: "수요기관", field: "organization", width: 120,
     },
-    { headerName: "공고번호", field: "bidNumber", width: 150, sortable: true, filter: "agTextColumnFilter" },
+    { headerName: "공고번호", field: "bidNumber", width: 150, filter: "agTextColumnFilter" },
     {
       headerName: "기초금액", field: "amount", width: 140,
       cellRenderer: (params) => {
@@ -222,11 +224,11 @@ const MyTable = () => {
         return Number(valueA) - Number(valueB);
       }
     },
-    { headerName: "공고일", field: "announcementDate", width: 120, sortable: true, filter: "agDateColumnFilter" },
-    { headerName: "마감일", field: "deadline", width: 120, sortable: true, filter: "agDateColumnFilter" },
-    { headerName: "계약방법", field: "contractMethod", width: 100, sortable: true, filter: true },
+    { headerName: "공고일", field: "announcementDate", width: 120, filter: "agDateColumnFilter" },
+    { headerName: "마감일", field: "deadline", width: 120, filter: "agDateColumnFilter" },
+    { headerName: "계약방법", field: "contractMethod", width: 100, },
     {
-      headerName: "첨부파일", field: "fileUrl", sortable: true, width: 200,
+      headerName: "첨부파일", field: "fileUrl", width: 200,
       cellRenderer: (params) => {
         if (!params.data.fileList || params.data.fileList.length === 0) return null;
 
@@ -275,31 +277,97 @@ const MyTable = () => {
     domLayout: 'autoHeight',
     pagination: true,
     paginationPageSize: 30,
-    // paginationAutoPageSize: false, // ✅ 필요에 따라 자동 페이지 크기 사용 여부 설정
   };
+  // 메시지 보내기 클릭시 total 전송 개수 체크(7개 제한)
+  const checkTotalRows = () => {
+    // 최대 7개까지 메시지 전송 가능
+    if (selectedRows.length > 7) {
+      toast.info('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
+      return;
+    }
+    onSendState(true);
+  }
+  // 선택된 행 담기
+  const onSelectionChanged = useCallback(() => {
+    if (gridRef.current && gridRef.current.api) {
+      const newSelectedRows = gridRef.current.api.getSelectedRows();
+      setSelectedRows(newSelectedRows);
+    }
+  }, [setSelectedRows])
 
   // 📌 엑셀 다운로드 함수
-  const exportToExcel = useCallback(() => {
-    if (gridRef.current) {
-      // gridRef.current.api.exportDataAsCsv();
-      gridRef.current.api.exportDataAsCsv({
-        fileName: `입찰공고_${new Date().toISOString().split("T")[0]}.csv`, // ✅ 파일명: "YYYY-MM-DD_입찰공고.csv"
-        processCellCallback: (params) => {
-          if (params.column.getColId() === "fileUrl") {
-            return null; // ✅ "fileUrl" 필드 값 제외
-          }
-          return params.value;
-        },
-        processHeaderCallback: (params) => {
-          if (params.column.getColId() === "fileUrl") {
-            return null; // ✅ "fileUrl" 헤더도 제외
-          }
-          return params.column.getColDef().headerName || params.column.getColId();
-        },
-      });
-    }
-  }, []);
+  const exportToExcel = async () => {
+    if (!gridRef.current) return;
 
+    const selectedRows = gridRef.current.api.getSelectedRows();
+    if (selectedRows.length === 0) {
+      toast.error("선택된 데이터가 없습니다. 먼저 행을 선택하세요.");
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("입찰공고");
+
+    worksheet.columns = [
+      { header: "No", key: "no", width: 5 },
+      { header: "구분", key: "category", width: 10 },
+      { header: "입찰유형", key: "bidType", width: 15 },
+      { header: "공고명", key: "title", width: 40 },
+      { header: "수요기관", key: "organization", width: 20 },
+      { header: "공고번호", key: "bidNumber", width: 15 },
+      { header: "기초금액", key: "amount", width: 15 },
+      { header: "공고일", key: "bidDate", width: 20 },
+      { header: "마감일", key: "deadline", width: 20 },
+      { header: "계약방법", key: "contractMethod", width: 15 }
+    ];
+
+    selectedRows.forEach((row, index) => {
+      console.log(row)
+      const rowData = worksheet.addRow({
+        no: index + 1,
+        category: row.category,
+        bidType: row.bidType,
+        title: row.title,
+        organization: row.organization,
+        bidNumber: row.bidNumber,
+        amount: row.amount ? `${Number(row.amount).toLocaleString()} 원` : "", // ✅ 쉼표 추가 + '원' 붙이기
+        bidDate: row.announcementDate,
+        deadline: row.deadline,
+        contractMethod: row.contractMethod
+      });
+
+
+      if (row.pageUrl) {
+        // ✅ 공고명에 하이퍼링크 적용 + 스타일 추가 (pageUrl이 있을 경우만)
+        rowData.getCell("title").value = {
+          text: row.title,
+          hyperlink: row.pageUrl
+        };
+        rowData.getCell("title").font = {
+          color: { argb: "FF0000FF" }, // 파란색 (#0000FF)
+          underline: true
+        };
+      }
+      // ✅ 기초금액을 **오른쪽 정렬**
+      if (row.amount) {
+        rowData.getCell("amount").alignment = { horizontal: "right" };
+      }
+      // ✅ 공고일 및 마감일 날짜 형식 적용 (MM/DD/YY HH:MM)
+      if (row.bidDate) {
+        rowData.getCell("bidDate").value = new Date(row.bidDate);
+        rowData.getCell("bidDate").numFmt = "MM/DD/YY HH:MM";
+      }
+      if (row.deadline) {
+        rowData.getCell("deadline").value = new Date(row.deadline);
+        rowData.getCell("deadline").numFmt = "MM/DD/YY HH:MM";
+      }
+
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    saveAs(blob, `입찰공고_${new Date().toISOString().split("T")[0]}.xlsx`);
+  };
   return (
     <div className={`ag-theme-alpine ${styles.contents}`}>
       {/* ✅ 필터링을 위한 드롭다운 메뉴 추가 */}
@@ -312,25 +380,39 @@ const MyTable = () => {
           ))}
         </select>
       </div> */}
-      <button onClick={exportToExcel} style={{ marginBottom: "10px" }}>엑셀 다운로드</button>
+      <div>
+        <CommonTooltip text="엑셀로 다운로드">
+          <button onClick={exportToExcel} className={styles.contents__exelImg}>
+            <img src='/icons/icon-exel.png' alt="" />
+          </button>
+        </CommonTooltip>
+        <CommonTooltip text="메시지 보내기">
+          <button onClick={checkTotalRows} className={styles.contents__kakaoImg}>
+            <img src='/icons/icon-kakao.png' alt="" />
+          </button>
+        </CommonTooltip>
+      </div>
       {/* 만약 데이터가 없을 때 */}
       {isLoading ?
         <div className={styles.noData}> <Loading /> </div> :
         (rowData.length == 0 ? (
           <div className={styles.noData}>조회 가능한 데이터가 없습니다.</div>
         ) : (
-
           <AgGridReact
             ref={gridRef}
             columnDefs={columnDefs}
             rowData={rowData || []}
+            rowSelection="multiple" // 다중 선택
+            rowMultiSelectWithClick={true}
+            // onRowSelected={onRowSelected} // 개별 행 선택 이벤트 핸들러
+            onSelectionChanged={onSelectionChanged} // 선택 변경 이벤트 핸들러
             enableBrowserTooltips={false} // ✅ 툴팁 활성화
             tooltipShowDelay={0} // ✅ 툴팁 즉시 표시
             gridOptions={gridOptions}
             defaultColDef={defaultColDef}
             getRowHeight={getRowHeight}
             enableCellTextSelection={true}  // ✅ 텍스트 드래그 활성화
-            suppressRowClickSelection={true}  // ✅ 클릭 시 행 선택 방지
+            suppressRowClickSelection={false}  // ✅ 클릭 시 행 선택 방지
             paginationPageSizeSelector={[5, 10, 20, 50]} // 선택 가능한 페이지 크기
           />
         ))}

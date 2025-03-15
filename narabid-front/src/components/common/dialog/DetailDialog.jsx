@@ -1,8 +1,6 @@
 
 import styles from './DetailDialog.module.scss'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import toast, { toastConfig } from 'react-simple-toasts'
-import 'react-simple-toasts/dist/theme/dark.css'
 
 import { AgGridReact } from 'ag-grid-react'
 import "ag-grid-community/styles/ag-grid.css";
@@ -12,7 +10,6 @@ import { fetchDetailProductRequests } from '@/pages/index/apis/openAPIRequests';
 import { useBidInfo } from '@/store/apiContext'
 
 
-toastConfig({ theme: 'dark' })
 
 
 function DetailDialog({ handleDialog, onSelectDetail, detailType }) {

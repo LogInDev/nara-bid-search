@@ -1,0 +1,37 @@
+.tooltipContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip {
+  position: absolute;
+  top: -35px;
+  left: 90%; /* 👉 버튼의 오른쪽으로 정렬 */
+  margin-left: 8px; /* 버튼과 툴팁 간격 */
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 35px;
+    left: -8px; /* 👉 툴팁의 왼쪽에 삼각형 생성 */
+    transform: translateY(-50%) rotate(-45deg); /* 🔹 삼각형 회전 */
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
+  }
+}
+
+.tooltipContainer:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+}

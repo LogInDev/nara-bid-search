@@ -3,10 +3,6 @@ import axios from 'axios';
 import styles from './SearchBox.module.scss'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import toast, { toastConfig } from 'react-simple-toasts'
-import 'react-simple-toasts/dist/theme/dark.css'
-
-toastConfig({ theme: 'dark' });
 
 import { useBidInfo } from '@/store/apiContext';
 import { fetchProductRequests, fetchProKeywordsRequests, fetchBidRequests, fetchBidKeywordsRequests } from '@/pages/index/apis/openAPIRequests';

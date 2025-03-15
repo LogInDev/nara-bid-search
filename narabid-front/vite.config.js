@@ -23,4 +23,7 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    include: ["xlsx"], // ✅ Vite가 `xlsx` 모듈을 미리 번들링하도록 설정
+  },
 })

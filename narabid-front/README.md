@@ -8,8 +8,13 @@
 
 4. React Router 설치 : `npm install react-router-dom localforage match-sorter sort-by`
 
-5. React Table 라이브러리 AG Grid 모듈 설치(32.0.0버전사용) : `npm install ag-grid-community@32.0.0 ag-grid-react@32.0.0`
+5. React Table 패키지 AG Grid 모듈 설치(32.0.0버전사용) : `npm install ag-grid-community@32.0.0 ag-grid-react@32.0.0`
 
-6. 달력 사용을 위한 라이브러리 설치 
+6. 달력 사용을 위한 패키지 설치 
     - `npm install react-datepicker`
     - `npm install date-fns`
+
+7. toast 메시지 사용을 위한 패키지 설치 : `npm install react-toastify`
+
+8. xlsx 파일 저장을 위한 xlsx 패키지 설치 : `npm install xlsx`
+    - 엑셀 내 하이퍼링크 색상 적용을 위한 패키지 설치 : `npm install exceljs file-saver`
