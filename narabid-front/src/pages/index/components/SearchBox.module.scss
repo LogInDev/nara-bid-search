@@ -342,12 +342,22 @@
             margin-left: 10px;
             font-size: 14px;
             font-weight: 400;
+            position:relative; /* 자식의 절대 위치 기준 */
             // height: 29px;
-            button{
-                border: none;
-                margin-right: -10px;
-                padding: 3px;
+            .titletext{
+                display: inline-block;
             }
+            button{
+                position: absolute;
+                border: none;
+                background-color: main.$color-gray-100;
+                border-radius: 2px;
+                padding: 3px;
+                cursor: pointer;
+                right: -4px;
+                top: -3px;
+            }
+
         }
     }
     &__wrapMid{

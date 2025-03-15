@@ -93,4 +93,17 @@ export const fetchBidKeywordsRequests = async (bidRegions, bidSearchTerms, forma
     );
 };
 
+// ✅ 세부 품목 검색
+export const fetchDetailProductRequests = async (detailProduct, page, size, PRODUCT_API_URL, PRODUCT_API_KEY) => {
+    return axios.get(`${PRODUCT_API_URL}/getThngPrdnmLocplcAccotListInfoInfoPrdnmSearch`, {
+        params: {
+            serviceKey: PRODUCT_API_KEY,
+            prdctClsfcNoNm: detailProduct,
+            pageNo: page,
+            numOfRows: size,
+            type: 'json'
+        }
+    })
+};
+
 

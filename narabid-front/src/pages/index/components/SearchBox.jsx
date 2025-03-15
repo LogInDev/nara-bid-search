@@ -11,13 +11,13 @@ toastConfig({ theme: 'dark' });
 import { useBidInfo } from '@/store/apiContext';
 import { fetchProductRequests, fetchProKeywordsRequests, fetchBidRequests, fetchBidKeywordsRequests } from '@/pages/index/apis/openAPIRequests';
 
-function SearchBox({ handleDialog }) {
+function SearchBox({ handleDialog, selectedDetail }) {
     const today = new Date();
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     oneMonthAgo.setDate(oneMonthAgo.getDate() + 1);
     // 상태관리 - bidInfo
-    const { setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, PRODUCT_API_URL, PRODUCT_API_KEY, setIsLoading, categories, setCategories } = useBidInfo();
+    const { setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, setIsLoading, categories, setCategories } = useBidInfo();
     // 상세 검색
     const [startDate, setStartDate] = useState(oneMonthAgo);
     const [endDate, setEndDate] = useState(today);
@@ -50,8 +50,35 @@ function SearchBox({ handleDialog }) {
     const isSearched = useRef(false); // handleSearch가 실행되었는지 여부
 
     useEffect(() => {
-        console.log(categories);
+        console.log(selectedDetail);
+        if (selectedDetail && selectedDetail.name && selectedDetail.code && selectedDetail.type) {
+            if (selectedDetail.type == 'pre') {
+                setPreDetailCategory(prev => ({
+                    ...prev,
+                    [selectedDetail.name]: selectedDetail.code,
+                }));
+                setProItems(prev =>
+                    prev.includes(selectedDetail.code) ? prev : [...prev, selectedDetail.code]
+                );
+            } else if (selectedDetail.type == 'bid') {
+                // bidDetailCategory도 동일하게 업데이트
+                setBidDetailCategory(prev => ({
+                    ...prev,
+                    [selectedDetail.name]: selectedDetail.code,
+                }));
+                // proItems와 bidItems 배열에도 중복 없이 추가
+                setBidItems(prev =>
+                    prev.includes(selectedDetail.code) ? prev : [...prev, selectedDetail.code]
+                );
+            }
+        }
+    }, [selectedDetail]);
 
+    useEffect(() => {
+        console.log(preDetailCategory)
+    }, [preDetailCategory])
+
+    useEffect(() => {
         if (categories.length !== 0) {
             setPreDetailCategory((categories.preDetailProducts || []).reduce((acc, item) => {
                 const [key, value] = item.split(":");
@@ -416,7 +443,10 @@ function SearchBox({ handleDialog }) {
                                 <td rowSpan={4} className={styles.table__title} >사전규격</td>
                                 <td colSpan={2} className={styles.table__wrapMid}>
                                     {/* 세부품목선택 */}
-                                    <div className={styles.table__title__mid}>세부 품목</div>
+                                    <div className={styles.table__title__mid}>
+                                        <span className={styles.titletext}>세부 품목</span>
+                                        <button onClick={() => handleDialog('pre')}>세부 품목 추가</button>
+                                    </div>
                                 </td>
                                 <td rowSpan={4} className={styles.table__searchBar}>
                                     <div className={styles.searchBar}>
@@ -468,8 +498,8 @@ function SearchBox({ handleDialog }) {
                                 <td className={styles.table__wrapMid}>
                                     {/* 세부품목선택 */}
                                     <div className={styles.table__title__mid}>
-                                        세부 품목
-                                        <button onClick={handleDialog}>세부 품목 추가</button>
+                                        <span className={styles.titletext}>세부 품목</span>
+                                        <button onClick={() => handleDialog('bid')}>세부 품목 추가</button>
                                     </div>
                                 </td>
                                 <td className={styles.table__wrapMid}>
