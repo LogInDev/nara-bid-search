@@ -15,7 +15,7 @@ function MainPage() {
     const handleSelectDetail = (data) => {
         console.log(data)
         setSelectedDetail(data);
-        setOpen(false); // 선택 후 모달 닫기
+        // setOpen(false); // 선택 후 모달 닫기
     };
 
     return (

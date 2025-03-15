@@ -400,17 +400,16 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 100px;
+        width: auto;
+        white-space: nowrap;
         padding: 4px 6px;
         border-radius: 8px;
-        // border: none;
         border: 1px solid main.$color-gray-300;
         background-color: main.$color-white-000;
         cursor: pointer;
         font-size: 13px;
         transition: all 0.2s ease-in-out;
         height: 30px;
-        // color: main.$color-black-900;
         color: main.$color-gray-700;
 
         &:hover{
@@ -420,9 +419,7 @@
     }
     &__selected{
         background-color: #1d8ac9!important;
-        // background-color: main.$color-white-700!important;
         color: main.$color-gray-100!important;
-        // color: white!important;
     }
 }
 .resultMid{
