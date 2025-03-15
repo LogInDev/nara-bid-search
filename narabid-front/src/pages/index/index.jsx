@@ -27,8 +27,8 @@ function MainPage() {
                 setDetailType(param);
             }}
                 selectedDetail={selectedDetail} />
-            {/* <br />
-            <SendMessage /> */}
+            <br />
+            <SendMessage />
             <br />
             <MyTable />
             {open && <DetailDialog handleDialog={setOpen}
