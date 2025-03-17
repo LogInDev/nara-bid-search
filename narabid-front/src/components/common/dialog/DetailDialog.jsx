@@ -17,7 +17,7 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
     const { PRODUCT_API_URL, PRODUCT_API_KEY } = useBidInfo();
     const [rowData, setRowData] = useState([]);
     // const [totalCount, setTotalCount] = useState(0);
-    const [pageSize] = useState(4);
+    const [pageSize] = useState(7);
     const [totalPages, setTotalPages] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [isPaginationVisible, setIsPaginationVisible] = useState(false);
@@ -43,6 +43,26 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
         {
             headerName: "세부 품목명", field: "bidType", flex: 1, minWidth: 210
         },
+        {
+            headerName: "",
+            field: "action",
+            width: 80,
+            cellRenderer: (params) => {
+              return (
+                <button
+                  className={`${styles.addButton}`}
+                  onClick={() => {
+                    const { category, bidType } = params.data;
+                    if (onSelectDetail) {
+                      onSelectDetail({ code: category, name: bidType, type: detailType });
+                    }
+                  }}
+                >
+                  추가
+                </button>
+              );
+            }
+          },
     ]);
     // 정렬방식
     const defaultColDef = useMemo(() => ({
@@ -59,9 +79,6 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
             setTotalPages(Math.ceil(total / size));
             setCurrentPage(page);
             setIsPaginationVisible(total > size); // totalCount가 pageSize보다 크면 UI 표시
-
-            console.log(detailProductResponses)
-            console.log(`🔥 API 호출: page=${page + 1}, size=${size}, total=${total}`);
 
             // 🔥 검색 결과를 테이블에 반영
             const formattedResults = detailProductResults.map((item, index) => ({
@@ -129,7 +146,7 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
                     </div>
                 </div>
                 <div className={styles.container__dialog__footer}>
-                    <div className="ag-theme-alpine" style={{ height: 220, width: '45vw', overflowX: 'auto' }}>
+                    <div className="ag-theme-alpine" style={{ height: '40vh', width: '45vw', overflowX: 'auto' }}>
                         <AgGridReact
                             columnDefs={columnDefs}
                             rowData={rowData}

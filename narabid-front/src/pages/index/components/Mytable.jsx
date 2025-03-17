@@ -386,11 +386,11 @@ const MyTable = ({ onSendState }) => {
             <img src='/icons/icon-exel.png' alt="" />
           </button>
         </CommonTooltip>
-        <CommonTooltip text="메시지 보내기">
+        {/* <CommonTooltip text="메시지 보내기">
           <button onClick={checkTotalRows} className={styles.contents__kakaoImg}>
             <img src='/icons/icon-kakao.png' alt="" />
           </button>
-        </CommonTooltip>
+        </CommonTooltip> */}
       </div>
       {/* 만약 데이터가 없을 때 */}
       {isLoading ?

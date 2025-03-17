@@ -16,7 +16,7 @@ function App() {
         pauseOnFocusLoss={false}  // ✅ 다른 창으로 이동해도 정지하지 않음
         draggable
         pauseOnHover={false}      // ✅ 마우스 호버 시에도 일시정지 안 함
-        theme="light"             // 테마: 'light', 'dark', 'colored' 중 택 1
+        theme="colored"             // 테마: 'light', 'dark', 'colored' 중 택 1
       />
       <Routes>
         <Route index path="/" element={<MainPage />}></Route>
