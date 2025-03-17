@@ -257,28 +257,49 @@ function SearchBox({ handleDialog, selectedDetail }) {
             );
 
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
-            const bidResults = bidResponses
+            const bidResults = Array.from(
+                bidResponses
                 .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                .reduce((acc, item)=>{
+                    const existingItem = acc.get(item.bidNtceNo);
+
+                    if(!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd){
+                        acc.set(item.bidNtceNo, item);
+                    }
+
+                    return acc;
+                }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
                 .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
                 .filter(item => {
                     if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
                     return new Date(item.bidClseDt) >= today;
                 }) // 오늘 이후 마감일만 포함
-                .map(item => ({
+                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+            ).map(item => ({
                     ...item,
                     type: 3 // ✅ 입찰공고 - 물품
                 }));
 
 
-            const bidKeywordResult = bidKeywordResponse
+            const bidKeywordResult = Array.from(
+                bidKeywordResponse
                 .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                .reduce((acc, item)=>{
+                    const existingItem = acc.get(item.bidNtceNo);
+                    
+                    if(!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd){
+                        acc.set(item.bidNtceNo, item);
+                    }
+                    
+                    return acc;
+                }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
                 .filter(item => {
                     if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
                     return new Date(item.bidClseDt) >= today;
                 }) // 오늘 이후 마감일만 포함
-                .map(item => ({
+                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+            ).map(item => ({
                     ...item,
                     type: 4 // ✅ 입찰공고 - 용역
                 }));
@@ -323,15 +344,25 @@ function SearchBox({ handleDialog, selectedDetail }) {
             );
 
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
-            const bidResults = bidResponses
+            const bidResults = Array.from(
+                bidResponses
                 .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                .reduce((acc, item)=>{
+                    const existingItem = acc.get(item.bidNtceNo);
+
+                    if(!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd){
+                        acc.set(item.bidNtceNo, item);
+                    }
+
+                    return acc;
+                }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
                 .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
                 .filter(item => {
                     if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
                     return new Date(item.bidClseDt) >= today;
                 }) // 오늘 이후 마감일만 포함
-                .map(item => ({
+                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+            ).map(item => ({
                     ...item,
                     type: 3 // ✅ 입찰공고 - 물품
                 }));
@@ -339,7 +370,6 @@ function SearchBox({ handleDialog, selectedDetail }) {
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
             const allResults = [...productResults, ...bidResults];
 
-            console.log('검색 결과', allResults);
             // 상태 업데이트
             setBidInfos(allResults);
         } catch (error) {
@@ -372,17 +402,29 @@ function SearchBox({ handleDialog, selectedDetail }) {
             );
 
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
-            const bidKeywordResult = bidKeywordResponse
-                .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
-                .filter(item => {
-                    if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
-                    return new Date(item.bidClseDt) >= today;
-                }) // 오늘 이후 마감일만 포함
-                .map(item => ({
-                    ...item,
-                    type: 4 // ✅ 입찰공고 - 용역
-                }));
+            const bidKeywordResult = Array.from(
+                    bidKeywordResponse
+                    .flatMap(response => response?.data?.response?.body?.items ?? [])
+                    .reduce((acc, item)=>{
+                        const existingItem = acc.get(item.bidNtceNo);
+                        
+                        if(!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd){
+                            acc.set(item.bidNtceNo, item);
+                        }
+                        
+                        return acc;
+                    }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                    .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                    .filter(item => {
+                        if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
+                        return new Date(item.bidClseDt) >= today;
+                    }) // 오늘 이후 마감일만 포함
+                    .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                ).map(item => ({
+                        ...item,
+                        type: 4 // ✅ 입찰공고 - 용역
+                    }));
+
 
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
             const allResults = [...proKeywordResults, ...bidKeywordResult];
