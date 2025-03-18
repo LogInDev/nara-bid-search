@@ -35,7 +35,7 @@ function MainPage() {
                 selectedDetail={selectedDetail} />
             <br />
             <MessageProvider>
-                <SendMessage sendState={sendState} onSendState={(value) => handleSendState(value)} />
+                {/* <SendMessage sendState={sendState} onSendState={(value) => handleSendState(value)} /> */}
                 <MyTable onSendState={(value) => handleSendState(value)} />
             </MessageProvider>
             {open && <DetailDialog handleDialog={setOpen}

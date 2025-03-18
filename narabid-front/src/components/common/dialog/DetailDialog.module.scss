@@ -237,3 +237,11 @@
         cursor: not-allowed;
     }
 }
+.addButton{
+    border: 1px solid main.$color-gray-500;
+    border-radius: 4px;
+    background-color: transparent;
+    color: main.$color-gray-900;
+    cursor: pointer;
+    padding:2px
+}
