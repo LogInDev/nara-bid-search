@@ -25,7 +25,6 @@ export const logoutFromKakao = async () => {
         console.log('로그아웃 성공:', response.data);
         // 로컬 스토리지에서 토큰 제거
         localStorage.removeItem('kakao_access_token');
-        localStorage.removeItem('kakao_refresh_token');
         // 추가적인 로그아웃 후 처리 로직
     } catch (error) {
         console.error('로그아웃 실패:', error.response?.data || error.message);

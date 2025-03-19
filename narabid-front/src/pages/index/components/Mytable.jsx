@@ -282,7 +282,11 @@ const MyTable = ({ onSendState }) => {
   const checkTotalRows = () => {
     // 최대 7개까지 메시지 전송 가능
     if (selectedRows.length > 7) {
-      toast.info('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
+      toast.error('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
+      return;
+    }
+    if (selectedRows.length < 1) {
+      toast.error('최소 1개는 선택해야 합니다. 보내실 공고를 선택해주세요.');
       return;
     }
     onSendState(true);
@@ -386,11 +390,11 @@ const MyTable = ({ onSendState }) => {
             <img src='/icons/icon-exel.png' alt="" />
           </button>
         </CommonTooltip>
-        {/* <CommonTooltip text="메시지 보내기">
+        <CommonTooltip text="메시지 보내기">
           <button onClick={checkTotalRows} className={styles.contents__kakaoImg}>
             <img src='/icons/icon-kakao.png' alt="" />
           </button>
-        </CommonTooltip> */}
+        </CommonTooltip>
       </div>
       {/* 만약 데이터가 없을 때 */}
       {isLoading ?

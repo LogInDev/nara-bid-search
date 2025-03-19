@@ -23,6 +23,11 @@
     }
     &__kakaoImg{
         // background-color: main.$color-orange-100;
+        img{
+            width: 37px;
+            height: 37px;
+            margin-top: 2px;
+        }
     }
 }
 
