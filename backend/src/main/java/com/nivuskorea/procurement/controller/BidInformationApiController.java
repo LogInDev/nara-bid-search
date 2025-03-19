@@ -13,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -104,13 +102,7 @@ public class BidInformationApiController {
         return ResponseEntity.ok(bidInformationRes);
     }
 
-    @GetMapping("/refresh-token")
-    public ResponseEntity<Map<String, String>> refreshToken() {
-        String newAccessToken = kakaoAuthService.refreshAccessToken();
-        Map<String, String> response = new HashMap<>();
-        response.put("accessToken", newAccessToken);
-        return ResponseEntity.ok(response);
-    }
+
 
     @GetMapping("/test")
     public String testApi() {
