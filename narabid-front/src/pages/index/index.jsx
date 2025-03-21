@@ -6,6 +6,7 @@ import SendMessage from '@/components/common/message/SendMessage';
 import DetailDialog from '@/components/common/dialog/DetailDialog';
 import { MessageProvider } from '@/store/messageContext';
 import styles from '@pages/index/styles/index.module.scss'
+import KakaoAuthHandler from '@/components/common/auth/KakaoService';
 
 function MainPage() {
     const [open, setOpen] = useState(false);
@@ -35,6 +36,7 @@ function MainPage() {
                 selectedDetail={selectedDetail} />
             <br />
             <MessageProvider>
+                <KakaoAuthHandler />
                 <SendMessage sendState={sendState} onSendState={(value) => handleSendState(value)} />
                 <MyTable onSendState={(value) => handleSendState(value)} />
             </MessageProvider>

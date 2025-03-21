@@ -2,4 +2,5 @@
 const API_BASE_URL = window.APP_CONFIG?.API_BASE_URL || "http://localhost:9291";
 // const API_FRONT_BASE_URL = window.APP_CONFIG?.API_BASE_URL || "http://nivusds.iptime.org:9290";
 const API_FRONT_BASE_URL = window.APP_CONFIG?.API_FRONT_BASE_URL || "http://localhost:5173";
-export { API_BASE_URL, API_FRONT_BASE_URL };
+const KAKAO_CLIENT_ID = "73b6020b74d6524073a6b7b8f7dce121";
+export { API_BASE_URL, API_FRONT_BASE_URL, KAKAO_CLIENT_ID };

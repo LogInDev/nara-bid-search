@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { API_BASE_URL, API_FRONT_BASE_URL } from '../../../../config'
+import { API_BASE_URL, API_FRONT_BASE_URL, KAKAO_CLIENT_ID } from '../../../../config'
 
-const KAKAO_CLIENT_ID = "73b6020b74d6524073a6b7b8f7dce121";
 const REDIRECT_URI = API_FRONT_BASE_URL;
 
 // 🔹 카카오 로그인 페이지로 이동
@@ -53,34 +52,47 @@ const setRefreshToken = async (tokenInfo) => {
 
 // 🔹 React 컴포넌트 내부에서 실행해야 하는 `useEffect`
 const KakaoAuthHandler = () => {
+    // 🔹 컴포넌트 마운트 시 URL에서 code 추출해서 초기값으로 설정
+    const [authCode, setAuthCode] = useState(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("code");
+    });
+
     useEffect(() => {
         const fetchToken = async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const authCode = urlParams.get("code"); // URL에서 authCode 얻기
+            if (!authCode) return;
+
             const token = localStorage.getItem('kakao_access_token');
-            if (token !== null && authCode) {
-                try {
+            console.log("📌 기존 토큰:", token);
+
+            try {
+                if (!token || token === "undefined") {
                     const tokenInfo = await requestAccessTokens(authCode);
+                    console.log("📥 새로 받은 토큰 정보:", tokenInfo);
+
                     if (tokenInfo) {
+                        localStorage.setItem('kakao_access_token', tokenInfo.access_token);
                         await setRefreshToken(tokenInfo);
                     }
-                } catch (error) {
-                    console.error("❌ 토큰 요청 실패:", error);
                 }
+            } catch (error) {
+                console.error("❌ 토큰 요청 실패:", error);
             }
         };
 
         fetchToken();
-    }, []);
+    }, [authCode]);
+
 
     return <div></div>;
 };
+
 
 // 🔹 액세스 토큰 갱신
 export const refreshKakaoAccessToken = async () => {
     try {
         const storedAccessToken = localStorage.getItem("kakao_access_token");
-        if (storedAccessToken) {
+        if (storedAccessToken && storedAccessToken !== "undefined") {
             console.log("✅ 이미 저장된 토큰이 있습니다:", storedAccessToken);
             return storedAccessToken;
         }
@@ -88,10 +100,13 @@ export const refreshKakaoAccessToken = async () => {
         console.log("✅ 액세스 토큰 갱신 응답:", response);
 
         const code = response?.data?.code;
+        console.log(code);
         if (code === -401) {
             redirectToKakaoLogin();
         }
-        return response?.data?.data?.accessToken;
+        const newToken = response?.data?.data?.accessToken;
+        localStorage.setItem("kakao_access_token", newToken);
+        return newToken;
     } catch (error) {
         console.error("❌ 카카오 액세스 토큰 갱신 오류:", error);
         return null;

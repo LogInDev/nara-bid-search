@@ -29,6 +29,17 @@
             margin-top: 2px;
         }
     }
+    &__logout{
+        width: 37px;
+        height: 37px;
+        margin-top: 2px;
+        &__span{
+            font-size: 34px;
+            color:#FEE500 ;
+            background-color: #303030;
+            border-radius: 2px;
+        }
+    }
 }
 
 // 기초금액 오른쪽 정렬

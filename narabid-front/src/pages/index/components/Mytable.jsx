@@ -15,6 +15,7 @@ import * as XLSX from 'xlsx';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import CommonTooltip from '@/components/common/tooltip/CommonTooltip';
+import { logoutFromKakao } from '@/components/common/auth/KakaoLogout';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 
@@ -278,6 +279,10 @@ const MyTable = ({ onSendState }) => {
     pagination: true,
     paginationPageSize: 30,
   };
+  // 카카오 로그아웃
+  const kakaoLogOut = () => {
+    logoutFromKakao();
+  }
   // 메시지 보내기 클릭시 total 전송 개수 체크(7개 제한)
   const checkTotalRows = () => {
     // 최대 7개까지 메시지 전송 가능
@@ -285,7 +290,8 @@ const MyTable = ({ onSendState }) => {
       toast.error('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
       return;
     }
-    if (selectedRows.length < 1) {
+    const accessToken = localStorage.getItem("kakao_access_token");
+    if (accessToken && selectedRows.length < 1) {
       toast.error('최소 1개는 선택해야 합니다. 보내실 공고를 선택해주세요.');
       return;
     }
@@ -393,6 +399,14 @@ const MyTable = ({ onSendState }) => {
         <CommonTooltip text="메시지 보내기">
           <button onClick={checkTotalRows} className={styles.contents__kakaoImg}>
             <img src='/icons/icon-kakao.png' alt="" />
+          </button>
+        </CommonTooltip>
+        <CommonTooltip text="카카오 로그아웃">
+          <button onClick={kakaoLogOut} className={styles.contents__logout}>
+            {/* 구글 아이콘을 사용 */}
+            <span className={`material-symbols-outlined ${styles.contents__logout__span}`} >
+              logout
+            </span>
           </button>
         </CommonTooltip>
       </div>

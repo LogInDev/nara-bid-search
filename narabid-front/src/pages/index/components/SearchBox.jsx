@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import { useBidInfo } from '@/store/apiContext';
 import { fetchProductRequests, fetchProKeywordsRequests, fetchBidRequests, fetchBidKeywordsRequests } from '@/pages/index/apis/openAPIRequests';
+import CommonTooltip from '@/components/common/tooltip/CommonTooltip';
 
 function SearchBox({ handleDialog, selectedDetail }) {
     const today = new Date();
@@ -259,50 +260,50 @@ function SearchBox({ handleDialog, selectedDetail }) {
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
             const bidResults = Array.from(
                 bidResponses
-                .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .reduce((acc, item)=>{
-                    const existingItem = acc.get(item.bidNtceNo);
+                    .flatMap(response => response?.data?.response?.body?.items ?? [])
+                    .reduce((acc, item) => {
+                        const existingItem = acc.get(item.bidNtceNo);
 
-                    if(!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd){
-                        acc.set(item.bidNtceNo, item);
-                    }
+                        if (!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd) {
+                            acc.set(item.bidNtceNo, item);
+                        }
 
-                    return acc;
-                }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
-                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
-                .filter(item => {
-                    if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
-                    return new Date(item.bidClseDt) >= today;
-                }) // 오늘 이후 마감일만 포함
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                        return acc;
+                    }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                    .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                    .filter(item => {
+                        if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
+                        return new Date(item.bidClseDt) >= today;
+                    }) // 오늘 이후 마감일만 포함
+                    .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
             ).map(item => ({
-                    ...item,
-                    type: 3 // ✅ 입찰공고 - 물품
-                }));
+                ...item,
+                type: 3 // ✅ 입찰공고 - 물품
+            }));
 
 
             const bidKeywordResult = Array.from(
                 bidKeywordResponse
-                .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .reduce((acc, item)=>{
-                    const existingItem = acc.get(item.bidNtceNo);
-                    
-                    if(!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd){
-                        acc.set(item.bidNtceNo, item);
-                    }
-                    
-                    return acc;
-                }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
-                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
-                .filter(item => {
-                    if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
-                    return new Date(item.bidClseDt) >= today;
-                }) // 오늘 이후 마감일만 포함
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                    .flatMap(response => response?.data?.response?.body?.items ?? [])
+                    .reduce((acc, item) => {
+                        const existingItem = acc.get(item.bidNtceNo);
+
+                        if (!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd) {
+                            acc.set(item.bidNtceNo, item);
+                        }
+
+                        return acc;
+                    }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                    .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                    .filter(item => {
+                        if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
+                        return new Date(item.bidClseDt) >= today;
+                    }) // 오늘 이후 마감일만 포함
+                    .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
             ).map(item => ({
-                    ...item,
-                    type: 4 // ✅ 입찰공고 - 용역
-                }));
+                ...item,
+                type: 4 // ✅ 입찰공고 - 용역
+            }));
 
             // console.log(bidKeywordResult);
 
@@ -346,26 +347,26 @@ function SearchBox({ handleDialog, selectedDetail }) {
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
             const bidResults = Array.from(
                 bidResponses
-                .flatMap(response => response?.data?.response?.body?.items ?? [])
-                .reduce((acc, item)=>{
-                    const existingItem = acc.get(item.bidNtceNo);
+                    .flatMap(response => response?.data?.response?.body?.items ?? [])
+                    .reduce((acc, item) => {
+                        const existingItem = acc.get(item.bidNtceNo);
 
-                    if(!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd){
-                        acc.set(item.bidNtceNo, item);
-                    }
+                        if (!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd) {
+                            acc.set(item.bidNtceNo, item);
+                        }
 
-                    return acc;
-                }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
-                .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
-                .filter(item => {
-                    if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
-                    return new Date(item.bidClseDt) >= today;
-                }) // 오늘 이후 마감일만 포함
-                .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
+                        return acc;
+                    }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                    .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
+                    .filter(item => {
+                        if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
+                        return new Date(item.bidClseDt) >= today;
+                    }) // 오늘 이후 마감일만 포함
+                    .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
             ).map(item => ({
-                    ...item,
-                    type: 3 // ✅ 입찰공고 - 물품
-                }));
+                ...item,
+                type: 3 // ✅ 입찰공고 - 물품
+            }));
 
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
             const allResults = [...productResults, ...bidResults];
@@ -403,15 +404,15 @@ function SearchBox({ handleDialog, selectedDetail }) {
 
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
             const bidKeywordResult = Array.from(
-                    bidKeywordResponse
+                bidKeywordResponse
                     .flatMap(response => response?.data?.response?.body?.items ?? [])
-                    .reduce((acc, item)=>{
+                    .reduce((acc, item) => {
                         const existingItem = acc.get(item.bidNtceNo);
-                        
-                        if(!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd){
+
+                        if (!existingItem || item.bidNtceOrd > existingItem.bidNtceOrd) {
                             acc.set(item.bidNtceNo, item);
                         }
-                        
+
                         return acc;
                     }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
                     .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
@@ -420,10 +421,10 @@ function SearchBox({ handleDialog, selectedDetail }) {
                         return new Date(item.bidClseDt) >= today;
                     }) // 오늘 이후 마감일만 포함
                     .filter(item => item.ntceKindNm === '등록공고') // '등록공고' 상태만 포함
-                ).map(item => ({
-                        ...item,
-                        type: 4 // ✅ 입찰공고 - 용역
-                    }));
+            ).map(item => ({
+                ...item,
+                type: 4 // ✅ 입찰공고 - 용역
+            }));
 
 
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
@@ -472,7 +473,13 @@ function SearchBox({ handleDialog, selectedDetail }) {
                     <table className={styles.table}>
                         <tbody>
                             <tr>
-                                <th className={styles.table__empty}></th>
+                                <th className={styles.table__empty}>
+                                    <CommonTooltip text="나라장터 바로가기">
+                                        <button className={styles.table__empty__btn} onClick={() => window.location.href = "https://www.g2b.go.kr/"}>
+                                            <img className={styles.table__empty__img} src='/icons/icon-nara.svg' alt="" />
+                                        </button>
+                                    </CommonTooltip>
+                                </th>
                                 <th colSpan={2} className={styles.table__rowtitle}>물품</th>
                                 <th className={styles.table__rowtitle}>일반용역, 기술용역</th>
                                 <th></th>

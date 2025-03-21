@@ -325,8 +325,18 @@
         // border-left: 1px solid main.$color-gray-700;
     }
     &__empty{
-        background-color: main.$color-white-000;
+        // background-color: main.$color-white-000;
         border: none!important;
+        &__btn{
+            
+            border: none;
+            background-color: main.$color-white-000;
+            cursor: pointer;
+        }
+        &__img{
+            width: 90px;
+            height: 20px;
+        }
     }
     &__title{
         width: 100px;

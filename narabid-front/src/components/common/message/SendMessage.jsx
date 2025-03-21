@@ -1,22 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import KakaoAuthHandler, { refreshKakaoAccessToken } from '@components/common/auth/KakaoService';
+import { refreshKakaoAccessToken } from '@components/common/auth/KakaoService';
 import { useMessageInfo } from '@/store/messageContext';
 
 function SendMessage({ sendState, onSendState }) {
-    const [accessToken, setAccessToken] = useState(localStorage.getItem("kakao_access_token"));
     const { messageInfos } = useMessageInfo();
 
-    useEffect(() => {
-        if (!accessToken) {
-            const getAccessToken = async () => {
-                const token = await refreshKakaoAccessToken();
-                setAccessToken(token);
-            }
-            getAccessToken();
-        }
-    }, [])
-    const sendMessage = async (retry = 0) => {
+    // useEffect(() => {
+    //     const token = localStorage.getItem("kakao_access_token");
+    //     console.log(token);
+    //     if (token != null && !accessToken && sendState) {
+    //         const getAccessToken = async () => {
+    //             const token = await refreshKakaoAccessToken();
+    //             if (token) {
+    //                 localStorage.setItem("kakao_access_token", token);
+    //                 setAccessToken(token);
+    //             }
+    //         }
+    //         getAccessToken();
+    //     }
+    // }, [])
+    const sendMessage = async (accessToken) => {
         // let token = accessToken;
         // const maxRetry = 3; // 최대 재시도 횟수
 
@@ -72,22 +76,18 @@ function SendMessage({ sendState, onSendState }) {
         } catch (error) {
             console.error("친구 목록 요청 실패", error.response?.data || error.message);
             // if (error.response?.status === 401) {
+            //     console.log(accessToken)
             //     // 토큰 갱신 로직 추가
-            //     // localStorage.removeItem("kakao_access_token");  // 기존 토큰제거
-            //     const token = await loginAndGetKakaoTokens();
+            //     localStorage.removeItem("kakao_access_token");  // 기존 토큰제거
+            //     const token = await refreshKakaoAccessToken();
 
             //     if (token) {
             //         console.log("✅ 토큰 확보 성공:", token);
-            //         setAccessToken(token)
             //         // 여기서 추가 로직 수행 (예: 메시지 전송 등)
             //     } else {
             //         console.log("❌ 토큰 확보 실패 또는 로그인 진행 중");
             //     }
             // }
-        } finally {
-            // localStorage.removeItem('kakao_access_token');
-
-            // logoutFromKakao();
         }
 
         const template = {
@@ -140,28 +140,40 @@ function SendMessage({ sendState, onSendState }) {
             if (!retry && error.response?.data?.code === -401) {
                 console.log("카카오 토큰 만료로 재발급 시도");
                 const newToken = await refreshKakaoAccessToken();
+                console.log(newToken)
                 if (newToken) {
-                    setAccessToken(newToken);
-                    sendMessage(true);  // 새로운 토큰으로 재시도
+                    sendMessage();  // 새로운 토큰으로 재시도
                 }
             }
         }
     };
 
     useEffect(() => {
-        const getAccessToken = async () => {
-            const token = await refreshKakaoAccessToken();
-            setAccessToken(token);
-        }
-        if (sendState) {
-            if (!accessToken) getAccessToken();
-            sendMessage();
-            onSendState(false);
-        }
+        const run = async () => {
+            const getAccessToken = async () => {
+                let token = localStorage.getItem("kakao_access_token");
+                if (!token || token === "undefined") {
+                    const newToken = await refreshKakaoAccessToken();
+                    if (newToken) {
+                        localStorage.setItem("kakao_access_token", newToken);
+                        token = newToken;
+                    }
+                }
+                return token;
+            };
+
+            if (sendState) {
+                const accessToken = await getAccessToken(); // ✅ await 붙여야 실제 토큰이 들어옴
+                await sendMessage(accessToken);             // ✅ 토큰 넘겨서 사용
+                onSendState(false);
+            }
+        };
+
+        run();
     }, [sendState, onSendState])
 
     return (<div>
-        <KakaoAuthHandler />
+
     </div>
     );
 }
