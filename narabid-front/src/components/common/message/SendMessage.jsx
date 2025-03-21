@@ -6,42 +6,7 @@ import { useMessageInfo } from '@/store/messageContext';
 function SendMessage({ sendState, onSendState }) {
     const { messageInfos } = useMessageInfo();
 
-    // useEffect(() => {
-    //     const token = localStorage.getItem("kakao_access_token");
-    //     console.log(token);
-    //     if (token != null && !accessToken && sendState) {
-    //         const getAccessToken = async () => {
-    //             const token = await refreshKakaoAccessToken();
-    //             if (token) {
-    //                 localStorage.setItem("kakao_access_token", token);
-    //                 setAccessToken(token);
-    //             }
-    //         }
-    //         getAccessToken();
-    //     }
-    // }, [])
     const sendMessage = async (accessToken) => {
-        // let token = accessToken;
-        // const maxRetry = 3; // 최대 재시도 횟수
-
-        // if (!token) {
-        //     const newToken = await refreshKakaoAccessToken();
-        //     console.log(newToken);
-        //     if (newToken) {
-        //         setAccessToken(newToken);
-        //         token = newToken;
-        //     } else {
-        //         console.error("토큰을 가져오지 못했습니다. 재시도 횟수:", retry + 1);
-        //         if (retry < maxRetry) {
-        //             // 재시도 횟수를 증가시키면서 재호출
-        //             return await sendMessage(retry + 1);
-        //         } else {
-        //             console.error("최대 재시도 횟수를 초과했습니다.");
-        //             return;
-        //         }
-        //     }
-        // }
-
         const urlMine = "https://kapi.kakao.com/v2/api/talk/memo/default/send";
         const urlFriendSend = "https://kapi.kakao.com/v1/api/talk/friends/message/default/send"
         let friendIds = [];

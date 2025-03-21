@@ -19,7 +19,7 @@ import { logoutFromKakao } from '@/components/common/auth/KakaoLogout';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 
-const MyTable = ({ onSendState }) => {
+const MyTable = ({ onSendState, handleSelectFriends }) => {
   const gridRef = useRef(null);
   const { bidInfos, isLoading } = useBidInfo();
   const { selectedRows, setSelectedRows } = useMessageInfo();
@@ -397,7 +397,10 @@ const MyTable = ({ onSendState }) => {
           </button>
         </CommonTooltip>
         <CommonTooltip text="메시지 보내기">
-          <button onClick={checkTotalRows} className={styles.contents__kakaoImg}>
+          <button
+            onClick={() => handleSelectFriends()}
+            // onClick={checkTotalRows} 
+            className={styles.contents__kakaoImg}>
             <img src='/icons/icon-kakao.png' alt="" />
           </button>
         </CommonTooltip>
