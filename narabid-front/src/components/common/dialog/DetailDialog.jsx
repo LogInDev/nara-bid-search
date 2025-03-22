@@ -8,6 +8,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { set } from 'date-fns'
 import { fetchDetailProductRequests } from '@/pages/index/apis/openAPIRequests';
 import { useBidInfo } from '@/store/apiContext'
+import CustomTooltip from '../tooltip/CustomTooltip';
 
 
 
@@ -70,6 +71,8 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
     const defaultColDef = useMemo(() => ({
         // filter: true, // ✅ 필터 활성화
         sortable: true, // ✅ 정렬 활성화
+        tooltipComponent: CustomTooltip, // ✅ 모든 컬럼에 자동 적용
+        tooltipValueGetter: (params) => params.value,
     }), []);
 
     const fetchAndSearch = async (page, size) => {
@@ -154,6 +157,8 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
                             rowData={rowData}
                             rowSelection="single"
                             defaultColDef={defaultColDef}
+                            enableBrowserTooltips={false} // ✅ 툴팁 활성화
+                            tooltipShowDelay={0} // ✅ 툴팁 즉시 표시
                             enableCellTextSelection={true}  // ✅ 텍스트 드래그 활성화
                             suppressRowClickSelection={true}  // ✅ 클릭 시 행 선택 방지
                             // domLayout={'autoHeight'} // ✅ 자동 높이 설정

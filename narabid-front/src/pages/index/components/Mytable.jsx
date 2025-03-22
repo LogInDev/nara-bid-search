@@ -2,7 +2,6 @@ import styles from './Mytable.module.scss'
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { toast } from 'react-toastify';
 import { AgGridReact } from "ag-grid-react";
-import { ModuleRegistry } from "ag-grid-community";
 import { ClientSideRowModelModule, CsvExportModule } from "ag-grid-community"; // ✅ SetFilterModule 추가
 
 import "ag-grid-community/styles/ag-grid.css";
@@ -17,7 +16,6 @@ import { saveAs } from "file-saver";
 import CommonTooltip from '@/components/common/tooltip/CommonTooltip';
 import { logoutFromKakao } from '@/components/common/auth/authService';
 
-ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 
 const MyTable = ({ handleSelectState }) => {
   const gridRef = useRef(null);
@@ -286,7 +284,7 @@ const MyTable = ({ handleSelectState }) => {
     filter: true, // ✅ 필터 활성화
     sortable: true, // ✅ 정렬 활성화
     // resizable: true, // ✅ 컬럼 크기 조절 가능
-    tooltipComponentFramework: CustomTooltip, // ✅ 모든 컬럼에 자동 적용
+    tooltipComponent: CustomTooltip, // ✅ 모든 컬럼에 자동 적용
     tooltipValueGetter: (params) => params.value,
   }));
 
@@ -452,7 +450,7 @@ const MyTable = ({ handleSelectState }) => {
             getRowHeight={getRowHeight}
             enableCellTextSelection={true}  // ✅ 텍스트 드래그 활성화
             suppressRowClickSelection={false}  // ✅ 클릭 시 행 선택 방지
-            paginationPageSizeSelector={[5, 10, 20, 50]} // 선택 가능한 페이지 크기
+            paginationPageSizeSelector={[5, 10, 30, 50]} // 선택 가능한 페이지 크기
           />
         ))}
     </div>
