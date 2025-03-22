@@ -476,7 +476,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
                                 <th className={styles.table__empty}>
                                     <CommonTooltip text="나라장터 바로가기">
                                         <button className={styles.table__empty__btn} onClick={() => window.location.href = "https://www.g2b.go.kr/"}>
-                                            <img className={styles.table__empty__img} src='/icons/icon-nara.svg' alt="" />
+                                            <img className={styles.table__empty__img} src='/icons/icon-nara.png' alt="" />
                                             바로가기
                                         </button>
                                     </CommonTooltip>
