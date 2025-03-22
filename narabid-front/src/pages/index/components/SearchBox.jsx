@@ -436,6 +436,11 @@ function SearchBox({ handleDialog, selectedDetail }) {
 
     }
 
+    // 저장된 키워드 전체 해제
+    const deleteKeyword = (param) => {
+        param == 'pre' ? setProSearchTerms([]) : setBidSearchTerms([]);
+    }
+
 
     return (
         <div className={styles.searchBox}>
@@ -490,14 +495,20 @@ function SearchBox({ handleDialog, selectedDetail }) {
                                     </div>
                                 </td>
                                 <td rowSpan={4} className={styles.table__searchBar}>
-                                    <div className={styles.searchBar}>
-                                        <button onClick={addProSearchTerm} className={styles.searchBar__btn}>
-                                            <img src='/icons/icon-plus.png' alt="" />
+
+                                    <div className={styles.searchBarWrap}>
+                                        <div className={styles.searchBar}>
+                                            <button onClick={addProSearchTerm} className={styles.searchBar__btn}>
+                                                <img src='/icons/icon-plus.png' alt="" />
+                                            </button>
+                                            <input type='text' placeholder='검색어를 입력하세요' className={styles.searchBar__input}
+                                                value={proSearchInput}
+                                                onChange={(e) => setProSearchInput(e.target.value)}
+                                                onKeyDown={(e) => handleKeyDown('pro', e)} />
+                                        </div>
+                                        <button className={styles.searchBarWrap__unchecked} onClick={() => deleteKeyword('pre')}>
+                                            <span style={{ fontSize: '20px' }}> ☒</span>전체 선택 해제
                                         </button>
-                                        <input type='text' placeholder='검색어를 입력하세요' className={styles.searchBar__input}
-                                            value={proSearchInput}
-                                            onChange={(e) => setProSearchInput(e.target.value)}
-                                            onKeyDown={(e) => handleKeyDown('pro', e)} />
                                     </div>
                                     <div className={styles.resultBox__firstTerm}>
                                         <div className={styles.searchBar__results}>
@@ -547,14 +558,19 @@ function SearchBox({ handleDialog, selectedDetail }) {
                                     <div className={styles.table__title__mid}>제한지역</div>
                                 </td>
                                 <td className={styles.table__searchBar} rowSpan={4}>
-                                    <div className={styles.searchBar}>
-                                        <button onClick={addBidSearchTerm} className={styles.searchBar__btn}>
-                                            <img src='/icons/icon-plus.png' alt="" />
+                                    <div className={styles.searchBarWrap}>
+                                        <div className={styles.searchBar}>
+                                            <button onClick={addBidSearchTerm} className={styles.searchBar__btn}>
+                                                <img src='/icons/icon-plus.png' alt="" />
+                                            </button>
+                                            <input type='text' placeholder='검색어를 입력하세요' className={styles.searchBar__input}
+                                                value={bidSearchInput}
+                                                onChange={(e) => setBidSearchInput(e.target.value)}
+                                                onKeyDown={(e) => handleKeyDown('bid', e)} />
+                                        </div>
+                                        <button className={styles.searchBarWrap__unchecked} onClick={() => deleteKeyword('bid')}>
+                                            <span style={{ fontSize: '20px' }}> ☒</span>전체 선택 해제
                                         </button>
-                                        <input type='text' placeholder='검색어를 입력하세요' className={styles.searchBar__input}
-                                            value={bidSearchInput}
-                                            onChange={(e) => setBidSearchInput(e.target.value)}
-                                            onKeyDown={(e) => handleKeyDown('bid', e)} />
                                     </div>
                                     <div className={styles.resultBox__secondTerm}>
                                         <div className={styles.searchBar__results}>

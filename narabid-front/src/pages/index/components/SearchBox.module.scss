@@ -480,4 +480,21 @@
     }
 }
 
-
+.searchBarWrap{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    &__unchecked{
+        border: none;
+        border-radius: 2px;
+        background-color: transparent;
+        margin-bottom: 19px;
+        width: 110px;
+        height: 20px;
+        cursor: pointer;
+    }
+    &__unckecked:hover{
+        // border: 1px solid main.$color-gray-300;
+        background: main.$color-gray-300;
+    }
+}
