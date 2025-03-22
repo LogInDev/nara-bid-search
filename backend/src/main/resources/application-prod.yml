@@ -1,0 +1,26 @@
+server:
+  port: 9291
+
+selenium:
+  headless: false #화면 안 보이게는 true
+
+api:
+  open:
+    bid_url: "http://apis.data.go.kr/1230000/ad/BidPublicInfoService"
+    bid_key: "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw=="
+    procurement_url: "http://apis.data.go.kr/1230000/ao/HrcspSsstndrdInfoService"
+    procurement_key: "U7EibmMK7nMPQkycZFc6zU6uWxDMX96wMNwYwNDb0fl4Osg59xdoGsrb6pCCOWoHfTPQh0XkWqZln1YHyZtdOw=="
+    token_url: "https://kauth.kakao.com/oauth/token"
+    client_id: "73b6020b74d6524073a6b7b8f7dce121"
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+    database: postgresql
+    hibernate:
+      ddl-auto: update
