@@ -254,7 +254,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
 
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
             const bidResults = Array.from(
-                bidResponses
+                [...bidResponses
                     .flatMap(response => response?.data?.response?.body?.items ?? [])
                     .reduce((acc, item) => {
                         const existingItem = acc.get(item.bidNtceNo);
@@ -264,7 +264,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
                         }
 
                         return acc;
-                    }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                    }, new Map()).values()]  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
                     .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
                     .filter(item => {
                         if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
@@ -278,7 +278,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
 
 
             const bidKeywordResult = Array.from(
-                bidKeywordResponse
+                [...bidKeywordResponse
                     .flatMap(response => response?.data?.response?.body?.items ?? [])
                     .reduce((acc, item) => {
                         const existingItem = acc.get(item.bidNtceNo);
@@ -288,7 +288,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
                         }
 
                         return acc;
-                    }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                    }, new Map()).values()]  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
                     .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
                     .filter(item => {
                         if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
@@ -341,7 +341,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
 
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
             const bidResults = Array.from(
-                bidResponses
+                [...bidResponses
                     .flatMap(response => response?.data?.response?.body?.items ?? [])
                     .reduce((acc, item) => {
                         const existingItem = acc.get(item.bidNtceNo);
@@ -351,7 +351,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
                         }
 
                         return acc;
-                    }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                    }, new Map()).values()]  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
                     .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
                     .filter(item => {
                         if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
@@ -399,7 +399,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
 
             // 🔹 입찰공고 데이터에 구분값 추가 (필터 적용 후)
             const bidKeywordResult = Array.from(
-                bidKeywordResponse
+                [...bidKeywordResponse
                     .flatMap(response => response?.data?.response?.body?.items ?? [])
                     .reduce((acc, item) => {
                         const existingItem = acc.get(item.bidNtceNo);
@@ -409,7 +409,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
                         }
 
                         return acc;
-                    }, new Map()).values()  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
+                    }, new Map()).values()]  // 공고번호가 같은경우 bidNtceOrd가장 큰 값이 가장 최근 데이터
                     .filter(item => bidMethods.length === 0 || bidMethods.includes(item.cntrctCnclsMthdNm)) // 계약 방법 필터링
                     .filter(item => {
                         if (!item.bidClseDt) return true; // 마감일 없는 데이터는 모두 포함
@@ -425,7 +425,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
             // 🔹 모든 데이터를 합쳐서 상태 업데이트
             const allResults = [...proKeywordResults, ...bidKeywordResult];
 
-            console.log('검색 결과', allResults);
+            // console.log('검색 결과', allResults);
             // 상태 업데이트
             setBidInfos(allResults);
         } catch (error) {
