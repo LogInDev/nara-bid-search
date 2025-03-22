@@ -26,9 +26,11 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
 
     // 🔹 모달이 열릴 때 body 스크롤 막기
     useEffect(() => {
-        document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
         return () => {
-            document.body.style.overflow = 'auto'; // 모달이 닫히면 스크롤 다시 활성화
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
         };
     }, []);
 
@@ -38,31 +40,31 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
     }
 
     const [columnDefs] = useState([
-        { headerName: "No", field: "no", width: 60 },
+        {
+            headerName: "추가",
+            field: "action",
+            width: 80,
+            cellRenderer: (params) => {
+                return (
+                    <button
+                        className={`${styles.addButton}`}
+                        onClick={() => {
+                            const { category, bidType } = params.data;
+                            if (onSelectDetail) {
+                                onSelectDetail({ code: category, name: bidType, type: detailType });
+                            }
+                        }}
+                    >
+                        추가
+                    </button>
+                );
+            }
+        },
+        // { headerName: "No", field: "no", width: 60 },
         { headerName: "세부 품목 번호", field: "category", width: 140 },
         {
             headerName: "세부 품목명", field: "bidType", flex: 1, minWidth: 210
         },
-        {
-            headerName: "",
-            field: "action",
-            width: 80,
-            cellRenderer: (params) => {
-              return (
-                <button
-                  className={`${styles.addButton}`}
-                  onClick={() => {
-                    const { category, bidType } = params.data;
-                    if (onSelectDetail) {
-                      onSelectDetail({ code: category, name: bidType, type: detailType });
-                    }
-                  }}
-                >
-                  추가
-                </button>
-              );
-            }
-          },
     ]);
     // 정렬방식
     const defaultColDef = useMemo(() => ({
@@ -146,7 +148,7 @@ function DetailDialog({ handleDialog, onSelectDetail, detailType }) {
                     </div>
                 </div>
                 <div className={styles.container__dialog__footer}>
-                    <div className="ag-theme-alpine" style={{ height: '40vh', width: '45vw', overflowX: 'auto' }}>
+                    <div className="ag-theme-alpine" style={{ height: '40vh', width: '45vw', minWidth: '330px', overflowX: 'auto' }}>
                         <AgGridReact
                             columnDefs={columnDefs}
                             rowData={rowData}

@@ -7,9 +7,9 @@ const MessageInfoContext = createContext();
 export const MessageProvider = ({ children }) => {
     const [selectedRows, setSelectedRows] = useState([]);
     const [messageInfos, setMessageInfos] = useState([]);
+    const [accessToken, setAccessToken] = useState(localStorage.getItem("kakao_access_token"));
 
     useEffect(() => {
-        console.log(selectedRows);
         const newMessageInfos = selectedRows.map(row => ({
             '구분': row.category,
             '입찰유형': row.bidType,
@@ -27,7 +27,7 @@ export const MessageProvider = ({ children }) => {
 
 
     return (
-        <MessageInfoContext.Provider value={{ selectedRows, setSelectedRows, messageInfos }}>
+        <MessageInfoContext.Provider value={{ accessToken, setAccessToken, selectedRows, setSelectedRows, messageInfos }}>
             {children}
         </MessageInfoContext.Provider>
     )

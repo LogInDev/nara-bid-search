@@ -1,16 +1,11 @@
 import React from 'react'
 import axios from 'axios';
 import { KAKAO_CLIENT_ID, API_FRONT_BASE_URL } from '../../../../config';
+import { useMessageInfo } from '@/store/messageContext';
 
 
 export const logoutFromKakao = async () => {
-    const accessToken = localStorage.getItem("kakao_access_token");
-    console.log(accessToken);
-    if (!accessToken) {
-        console.error('액세스 토큰이 없습니다.');
-        return;
-    }
-
+    const { accessToken, setAccessToken } = useMessageInfo();
     try {
         const response = await axios.post(
             "https://kapi.kakao.com/v1/user/logout",
@@ -23,13 +18,14 @@ export const logoutFromKakao = async () => {
             }
         );
 
-        console.log('로그아웃 성공:', response.data);
-
+        return response?.status;
         // 추가적인 로그아웃 후 처리 로직
     } catch (error) {
         console.error('로그아웃 실패:', error.response?.data || error.message);
+        return error.response?.status;
     } finally {
         // 로컬 스토리지에서 토큰 제거
+        setAccessToken(null);
         localStorage.removeItem('kakao_access_token');
     }
 };

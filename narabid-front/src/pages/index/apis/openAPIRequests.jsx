@@ -19,10 +19,10 @@ import axios from 'axios';
 
 // ✅ 발주 > 사전규격 > 물품 조회 요청
 export const fetchProductRequests = async (proItems, formattedStartDateApi, formattedEndDateApi, PRE_API_URL, PRE_API_KEY) => {
-    const items = proItems.length > 0 ? proItems : [undefined];
+    // const items = proItems.length > 0 ? proItems : [undefined];
 
     return Promise.all(
-        items.map(item =>
+        proItems.map(item =>
             axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoThngPPSSrch`, {
                 params: {
                     ...requests.productRequest,
@@ -59,11 +59,11 @@ export const fetchProKeywordsRequests = async (proSearchTerms, formattedStartDat
 export const fetchBidRequests = async (bidRegions, bidItems, formattedStartDateApi, formattedEndDateApi, BID_API_URL, BID_API_KEY) => {
     // bidRegions가 빈 배열이면 [undefined]로 대체하여 하나의 요청만 실행되도록 함
     const regions = bidRegions.length > 0 ? bidRegions : [undefined];
-    const items = bidItems.length > 0 ? bidItems : [undefined];
+    // const items = bidItems.length > 0 ? bidItems : [undefined];
 
     return Promise.all(
         regions.flatMap(region =>
-            items.map(item =>
+            bidItems.map(item =>
                 axios.get(`${BID_API_URL}/getBidPblancListInfoThngPPSSrch`, {
                     params: {
                         ...requests.bidRequest,

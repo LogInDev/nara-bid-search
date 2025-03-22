@@ -47,7 +47,6 @@ function SearchBox({ handleDialog, selectedDetail }) {
     const isSearched = useRef(false); // handleSearch가 실행되었는지 여부
 
     useEffect(() => {
-        console.log(selectedDetail);
         if (selectedDetail && selectedDetail.name && selectedDetail.code && selectedDetail.type) {
             if (selectedDetail.type == 'pre') {
                 setPreDetailCategory(prev => ({
@@ -70,10 +69,6 @@ function SearchBox({ handleDialog, selectedDetail }) {
             }
         }
     }, [selectedDetail]);
-
-    useEffect(() => {
-        console.log(preDetailCategory)
-    }, [preDetailCategory])
 
     useEffect(() => {
         if (categories.length !== 0) {
@@ -477,6 +472,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
                                     <CommonTooltip text="나라장터 바로가기">
                                         <button className={styles.table__empty__btn} onClick={() => window.location.href = "https://www.g2b.go.kr/"}>
                                             <img className={styles.table__empty__img} src='/icons/icon-nara.svg' alt="" />
+                                            바로가기
                                         </button>
                                     </CommonTooltip>
                                 </th>

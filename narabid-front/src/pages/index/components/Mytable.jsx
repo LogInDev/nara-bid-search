@@ -1,5 +1,5 @@
 import styles from './Mytable.module.scss'
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { toast } from 'react-toastify';
 import { AgGridReact } from "ag-grid-react";
 import { ModuleRegistry } from "ag-grid-community";
@@ -15,14 +15,15 @@ import * as XLSX from 'xlsx';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import CommonTooltip from '@/components/common/tooltip/CommonTooltip';
-import { logoutFromKakao } from '@/components/common/auth/KakaoLogout';
+import { logoutFromKakao } from '@/components/common/auth/authService';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, CsvExportModule]);
 
-const MyTable = ({ onSendState, handleSelectFriends }) => {
+const MyTable = ({ handleSelectState }) => {
   const gridRef = useRef(null);
   const { bidInfos, isLoading } = useBidInfo();
-  const { selectedRows, setSelectedRows } = useMessageInfo();
+  const { selectedRows, setSelectedRows, accessToken, setAccessToken } = useMessageInfo();
+  const [showLogout, setShowLogout] = useState(false);
 
   // 백엔드 api 용
   // const rowData = useMemo(() => bidInfos.map((item, index) => ({
@@ -38,9 +39,16 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
   //   contractMethod: item.contractMethod,
   // })), [bidInfos]);
 
+  useEffect(() => {
+    if (!accessToken || accessToken == "undefined") {
+      setShowLogout(false);
+    } else {
+      setShowLogout(true);
+    }
+  }, [accessToken])
+
   const rowData = useMemo(() => {
     if (!Array.isArray(bidInfos)) {
-      console.error("bidInfos가 배열이 아닙니다:", bidInfos);
       return []; // bidInfos가 유효하지 않으면 빈 배열 반환
     }
 
@@ -165,6 +173,14 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
     });
   }, [bidInfos]);
 
+  // 테이블 새로 만들어질 때 rowData 리셋, 기존에 선택된 항목 비우기
+  useEffect(() => {
+    if (gridRef.current && gridRef.current.api) {
+      gridRef.current.api.deselectAll();
+    }
+    setSelectedRows([]);
+  }, [rowData]);
+
   // 파일 다운로드 함수
   const handleFileDownload = (url) => {
     const link = document.createElement("a");
@@ -280,8 +296,11 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
     paginationPageSize: 30,
   };
   // 카카오 로그아웃
-  const kakaoLogOut = () => {
-    logoutFromKakao();
+  const kakaoLogOut = async () => {
+    const status = await logoutFromKakao(accessToken, setAccessToken);
+    if (status == 200) {
+      toast.success('로그아웃 완료');
+    }
   }
   // 메시지 보내기 클릭시 total 전송 개수 체크(7개 제한)
   const checkTotalRows = () => {
@@ -290,12 +309,11 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
       toast.error('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
       return;
     }
-    const accessToken = localStorage.getItem("kakao_access_token");
-    if (accessToken && selectedRows.length < 1) {
+    if (accessToken && accessToken != "undefined" && selectedRows.length < 1) {
       toast.error('최소 1개는 선택해야 합니다. 보내실 공고를 선택해주세요.');
       return;
     }
-    onSendState(true);
+    handleSelectState(true);
   }
   // 선택된 행 담기
   const onSelectionChanged = useCallback(() => {
@@ -332,7 +350,6 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
     ];
 
     selectedRows.forEach((row, index) => {
-      console.log(row)
       const rowData = worksheet.addRow({
         no: index + 1,
         category: row.category,
@@ -363,14 +380,14 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
         rowData.getCell("amount").alignment = { horizontal: "right" };
       }
       // ✅ 공고일 및 마감일 날짜 형식 적용 (MM/DD/YY HH:MM)
-      if (row.bidDate) {
-        rowData.getCell("bidDate").value = new Date(row.bidDate);
-        rowData.getCell("bidDate").numFmt = "MM/DD/YY HH:MM";
-      }
-      if (row.deadline) {
-        rowData.getCell("deadline").value = new Date(row.deadline);
-        rowData.getCell("deadline").numFmt = "MM/DD/YY HH:MM";
-      }
+      // if (row.bidDate) {
+      //   rowData.getCell("bidDate").value = new Date(row.bidDate);
+      //   rowData.getCell("bidDate").numFmt = "MM/DD/YY HH:MM";
+      // }
+      // if (row.deadline) {
+      //   rowData.getCell("deadline").value = new Date(row.deadline);
+      //   rowData.getCell("deadline").numFmt = "MM/DD/YY HH:MM";
+      // }
 
     });
 
@@ -378,6 +395,7 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     saveAs(blob, `입찰공고_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
+
   return (
     <div className={`ag-theme-alpine ${styles.contents}`}>
       {/* ✅ 필터링을 위한 드롭다운 메뉴 추가 */}
@@ -398,13 +416,12 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
         </CommonTooltip>
         <CommonTooltip text="메시지 보내기">
           <button
-            onClick={() => handleSelectFriends()}
-            // onClick={checkTotalRows} 
+            onClick={checkTotalRows}
             className={styles.contents__kakaoImg}>
             <img src='/icons/icon-kakao.png' alt="" />
           </button>
         </CommonTooltip>
-        <CommonTooltip text="카카오 로그아웃">
+        {showLogout && <CommonTooltip text="카카오 로그아웃">
           <button onClick={kakaoLogOut} className={styles.contents__logout}>
             {/* 구글 아이콘을 사용 */}
             <span className={`material-symbols-outlined ${styles.contents__logout__span}`} >
@@ -412,6 +429,7 @@ const MyTable = ({ onSendState, handleSelectFriends }) => {
             </span>
           </button>
         </CommonTooltip>
+        }
       </div>
       {/* 만약 데이터가 없을 때 */}
       {isLoading ?
