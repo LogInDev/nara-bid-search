@@ -45,33 +45,42 @@ function SelectFriends({ selectState, setFriendsInfos, handleSelectState, handle
     }
     useEffect(() => {
         const run = async () => {
-            const getAccessToken = async () => {
-                let token = accessToken;
-                if (!token || token === "undefined") {
-                    const newToken = await refreshKakaoAccessToken(200);
-                    if (newToken) {
-                        setAccessToken(newToken);
-                        localStorage.setItem("kakao_access_token", newToken);
-                        token = newToken;
-                    }
+            if (!selectState) {
+                // ✅ selectState가 false면 그냥 빠져나감
+                handleOpenFriends(false);
+                setFriendsInfos([]);
+                return;
+            }
+
+            let token = accessToken;
+            if (!token || token === "undefined") {
+                const newToken = await refreshKakaoAccessToken(200);
+                if (newToken) {
+                    setAccessToken(newToken);
+                    localStorage.setItem("kakao_access_token", newToken);
+                    token = newToken;
                 }
-                return token;
-            };
-            if (selectState) {
-                const accessToken = await getAccessToken(); // ✅ await 붙여야 실제 토큰이 들어옴
-                const status = await selectFriends(accessToken);           // ✅ 토큰 넘겨서 사용
-                if (status == 200) {
-                    handleOpenFriends(true);
-                } else {
-                    handleSelectState(false)
-                    toast.error('권한이 없는 사용자입니다. 관리자에게 권한요청하세요.')
-                    if (status == 401) {
-                        console.log(status)
-                        refreshKakaoAccessToken(status);
-                    }
+            }
+
+            if (!token || token === "undefined") {
+                // toast.error("정상적인 접근이 아닙니다. 로그아웃 후 다시 시도해주세요.");
+                handleSelectState(false);
+                return;
+            }
+
+            const status = await selectFriends(token);
+            if (status === 200) {
+                handleOpenFriends(true);
+            } else {
+                handleSelectState(false);
+                toast.error('권한이 없는 사용자입니다. 관리자에게 권한요청하세요.');
+                if (status === 401) {
+                    console.log(status);
+                    refreshKakaoAccessToken(status);
                 }
             }
         };
+
 
         run();
     }, [selectState])

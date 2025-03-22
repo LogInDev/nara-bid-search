@@ -303,7 +303,7 @@ const MyTable = ({ handleSelectState }) => {
   // 메시지 보내기 클릭시 total 전송 개수 체크(7개 제한)
   const checkTotalRows = () => {
     // 최대 7개까지 메시지 전송 가능
-    if (selectedRows.length > 7) {
+    if (accessToken && accessToken != "undefined" && selectedRows.length > 7) {
       toast.error('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
       return;
     }
