@@ -63,7 +63,6 @@ function SelectFriends({ selectState, setFriendsInfos, handleSelectState, handle
             }
 
             if (!token || token === "undefined") {
-                // toast.error("정상적인 접근이 아닙니다. 로그아웃 후 다시 시도해주세요.");
                 handleSelectState(false);
                 return;
             }

@@ -1,6 +1,7 @@
 import { use, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import styles from './SearchBox.module.scss'
+import { toast } from 'react-toastify';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -451,7 +452,18 @@ function SearchBox({ handleDialog, selectedDetail }) {
                         <label className={styles.dateBox__label}>조회 시작일</label>
                         <DatePicker
                             selected={startDate}
-                            onChange={setStartDate}
+                            onChange={(date) => {
+                                if (endDate && date > endDate) {
+                                    toast.warn("시작일은 종료일보다 이후일 수 없습니다.");
+                                    return;
+                                }
+                                if (endDate && (endDate - date) / (1000 * 60 * 60 * 24) > 365) {
+                                    toast.warn("최대 조회 기간은 365일입니다.");
+                                    return;
+                                }
+                                setStartDate(date);
+                            }}
+                            maxDate={endDate}
                             dateFormat="yyyy/MM/dd"
                             className="border p-2 rounded w-full"
                             placeholderText="YYYY/MM/DD"
@@ -461,7 +473,18 @@ function SearchBox({ handleDialog, selectedDetail }) {
                         <label className={styles.dateBox__label}>조회 종료일</label>
                         <DatePicker
                             selected={endDate}
-                            onChange={setEndDate}
+                            onChange={(date) => {
+                                if (date < startDate) {
+                                    toast.warn("종료일은 시작일보다 이전일 수 없습니다.");
+                                    return;
+                                }
+                                if ((date - startDate) / (1000 * 60 * 60 * 24) > 365) {
+                                    toast.warn("최대 조회 기간은 365일입니다.");
+                                    return;
+                                }
+                                setEndDate(date);
+                            }}
+                            minDate={startDate}
                             dateFormat="yyyy/MM/dd"
                             className="border p-2 rounded w-full"
                             placeholderText="YYYY/MM/DD"

@@ -304,11 +304,11 @@ const MyTable = ({ handleSelectState }) => {
   const checkTotalRows = () => {
     // 최대 7개까지 메시지 전송 가능
     if (accessToken && accessToken != "undefined" && selectedRows.length > 7) {
-      toast.error('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
+      toast.warn('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
       return;
     }
     if (accessToken && accessToken != "undefined" && selectedRows.length < 1) {
-      toast.error('최소 1개는 선택해야 합니다. 보내실 공고를 선택해주세요.');
+      toast.warn('최소 1개는 선택해야 합니다. 보내실 공고를 선택해주세요.');
       return;
     }
     handleSelectState(true);

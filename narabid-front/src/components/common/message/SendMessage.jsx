@@ -188,9 +188,9 @@ function SendMessage({ friendsInfos, handleOpenFriends }) {
         handleOpenFriends(false);
         if ((statusMe === 200 || statusMe === null) && (statusFriends === 200 || statusFriends === null)) {
             if (selectedFriendIds.length == 1) {
-                toast.info(`${selectedFriends[0].name}에게 메시지를 보냈습니다.`);
+                toast.success(`${selectedFriends[0].name}에게 메시지를 보냈습니다.`);
             } else {
-                toast.info(`${selectedFriendIds.length}명에게 메시지를 보냈습니다.`);
+                toast.success(`${selectedFriendIds.length}명에게 메시지를 보냈습니다.`);
             }
         } else {
             toast.error("일부 전송에 실패했습니다.");
