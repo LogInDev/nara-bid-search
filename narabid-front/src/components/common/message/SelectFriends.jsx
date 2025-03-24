@@ -54,7 +54,7 @@ function SelectFriends({ selectState, setFriendsInfos, handleSelectState, handle
 
             let token = accessToken;
             if (!token || token === "undefined") {
-                const newToken = await refreshKakaoAccessToken(200);
+                const newToken = await refreshKakaoAccessToken(200, setAccessToken);
                 if (newToken) {
                     setAccessToken(newToken);
                     localStorage.setItem("kakao_access_token", newToken);
@@ -75,7 +75,7 @@ function SelectFriends({ selectState, setFriendsInfos, handleSelectState, handle
                 toast.error('권한이 없는 사용자입니다. 관리자에게 권한요청하세요.');
                 if (status === 401) {
                     console.log(status);
-                    refreshKakaoAccessToken(status);
+                    refreshKakaoAccessToken(status, setAccessToken);
                 }
             }
         };
