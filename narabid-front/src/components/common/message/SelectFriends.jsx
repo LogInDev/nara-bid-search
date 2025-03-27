@@ -27,7 +27,7 @@ function SelectFriends({ selectState, setFriendsInfos, handleSelectState, handle
             // 🔸 친구들 정보 배열 생성
             const arrayFriendsData = Array.isArray(friendsElements)
                 ? friendsElements.map(row => ({
-                    profile_nickname: row.profile_nickname || "",
+                    profile_nickname: row.profile_nickname || "/icons/icon-me.png",
                     profile_img: row.profile_thumbnail_image || "",
                     uuid: row.uuid,
                 }))
