@@ -32,7 +32,7 @@ function MainPage() {
 
     return (
         <div>
-            <h1>나라장터 검색 시스템</h1>
+            {/* <h1>나라장터 검색 시스템</h1> */}
             <br />
             <SearchBox handleDialog={(param) => {
                 setOpen(true);

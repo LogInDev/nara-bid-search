@@ -15,7 +15,6 @@ function SendMessage({ friendsInfos, handleOpenFriends }) {
     const [selectedFriendIds, setSelectedFriendIds] = useState([]);
     const { accessToken } = useMessageInfo();
 
-
     // 🔹 모달이 열릴 때 body 스크롤 막기
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -104,6 +103,9 @@ function SendMessage({ friendsInfos, handleOpenFriends }) {
         };
         return template;
     }
+
+
+
 
     // '나'에게 메시지 보내기 API
     const sendToMe = async (accessToken) => {
@@ -214,7 +216,10 @@ function SendMessage({ friendsInfos, handleOpenFriends }) {
                         <span className={styles.bookmark__authorName}>메시지 보낼 대상 선택하기</span>
                     </div>
                     <div className={styles.close}>
-                        <button className={styles.sendBtn} onClick={checkTotalRows} >
+                        <button className={styles.sendBtn}
+                            // onClick={checkTotalRows} 
+                            onClick={shareToKakao}
+                        >
                             {/* <img src="/icons/icon-send.png" /> */}
                             보내기
                         </button>

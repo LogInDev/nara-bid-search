@@ -18,3 +18,5 @@
 
 8. xlsx 파일 저장을 위한 xlsx 패키지 설치 : `npm install xlsx`
     - 엑셀 내 하이퍼링크 색상 적용을 위한 패키지 설치 : `npm install exceljs file-saver`
+
+9. Kakao 공유 기능을 위한 Kakao SDK 패키지 설치 : `npm install @kakao/kakao-js-sdk`

@@ -20,6 +20,7 @@ import { logoutFromKakao } from '@/components/common/auth/authService';
 const MyTable = ({ handleSelectState }) => {
   const gridRef = useRef(null);
   const { bidInfos, isLoading } = useBidInfo();
+  const { messageInfos } = useMessageInfo();
   const { selectedRows, setSelectedRows, accessToken, setAccessToken } = useMessageInfo();
   const [showLogout, setShowLogout] = useState(false);
 
@@ -300,19 +301,6 @@ const MyTable = ({ handleSelectState }) => {
       toast.success('로그아웃 완료');
     }
   }
-  // 메시지 보내기 클릭시 total 전송 개수 체크(7개 제한)
-  const checkTotalRows = () => {
-    // 최대 7개까지 메시지 전송 가능
-    if (accessToken && accessToken != "undefined" && selectedRows.length > 7) {
-      toast.warn('최대 7개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
-      return;
-    }
-    if (accessToken && accessToken != "undefined" && selectedRows.length < 1) {
-      toast.warn('최소 1개는 선택해야 합니다. 보내실 공고를 선택해주세요.');
-      return;
-    }
-    handleSelectState(true);
-  }
   // 선택된 행 담기
   const onSelectionChanged = useCallback(() => {
     if (gridRef.current && gridRef.current.api) {
@@ -394,6 +382,100 @@ const MyTable = ({ handleSelectState }) => {
     saveAs(blob, `입찰공고_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 
+  // 카카오 공유하기
+  const [currentPage, setCurrentPage] = useState(0); // 이걸 꼭 넣어야 함!
+
+  const setShareDatas = () => {
+    if (!messageInfos || messageInfos.length === 0) return null;
+
+    const itemsPerPage = 5;
+    const totalPages = Math.ceil(messageInfos.length / itemsPerPage);
+    const pagedInfos = messageInfos.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+
+    const keys = [
+      { label: "입찰유형", field: "입찰유형" },
+      { label: "공고번호", field: "공고번호" },
+      { label: "기초금액", field: "기초금액" },
+      { label: "공고일", field: "공고일" },
+      { label: "마감일", field: "마감일" },
+      { label: "계약방법", field: "계약방법" },
+      { label: "수요기관", field: "수요기관" },
+    ];
+
+    const listContents = pagedInfos.map((info, idx) => {
+      const description = keys.map(({ label, field }) => {
+        const value = info[field];
+        return `${label}: ${value ?? "-"}`;
+      }).join("\n");
+
+      const base = {
+        title: info["공고명"] || `공고 ${idx + 1}`,
+        // description,
+        description: info["공고번호"],
+        imageUrl: "https://via.placeholder.com/1x1", // ✅ 필수
+        // imageUrl: "http://nivusds.iptime.org:9290/nivus.png", // ✅ 필수
+        link: {
+          webUrl: info["상세페이지"] && info["상세페이지"].trim() !== ""
+            ? info["상세페이지"]
+            : "https://www.g2b.go.kr",
+          mobileWebUrl: info["상세페이지"] && info["상세페이지"].trim() !== ""
+            ? info["상세페이지"]
+            : "https://www.g2b.go.kr"
+        }
+      };
+
+      return base;
+    });
+
+    return {
+      objectType: "list",
+      headerTitle: `공고 목록`,
+      headerLink: {
+        webUrl: "http://nivusds.iptime.org:9290",
+        mobileWebUrl: "http://nivusds.iptime.org:9290"
+      },
+      contents: listContents,
+      buttons: [
+        {
+          title: "나라장터 바로가기",
+          link: {
+            webUrl: "https://www.g2b.go.kr",
+            mobileWebUrl: "https://www.g2b.go.kr"
+          }
+        }
+      ],
+      // serverCallbackArgs: {
+      //   userId: "user_abc_123",
+      //   sharedCount: pagedInfos.length,
+      //   page: currentPage + 1
+      // }
+    };
+  };
+
+  const shareToKakao = () => {
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+      window.Kakao.init("4da47948fb547638c3df026742185921"); // 본인의 JavaScript 키
+    }
+
+    const template = setShareDatas();
+    if (!template) console.log('공유할 공고가 없습니다.')
+    window.Kakao.Share.sendDefault(template);
+  };
+
+  // 메시지 보내기 클릭시 total 전송 개수 체크(7개 제한)
+  const checkTotalRows = () => {
+    // 최대 7개까지 메시지 전송 가능
+    if (selectedRows.length > 3) {
+      toast.warn('최대 3개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
+      return;
+    }
+    if (selectedRows.length < 1) {
+      toast.warn('최소 1개는 선택해야 합니다. 보내실 공고를 선택해주세요.');
+      return;
+    }
+    shareToKakao();
+    // handleSelectState(true);
+  }
   return (
     <div className={`ag-theme-alpine ${styles.contents}`}>
       {/* ✅ 필터링을 위한 드롭다운 메뉴 추가 */}
@@ -416,18 +498,19 @@ const MyTable = ({ handleSelectState }) => {
           <button
             onClick={checkTotalRows}
             className={styles.contents__kakaoImg}>
-            <img src='/icons/icon-kakao.png' alt="" />
+            {/* <img src='/icons/icon-kakao.png' alt="" /> */}
+            <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png"
+              alt="카카오톡 공유 보내기 버튼" />
           </button>
         </CommonTooltip>
-        {showLogout && <CommonTooltip text="카카오 로그아웃">
+        {/* {showLogout && <CommonTooltip text="카카오 로그아웃">
           <button onClick={kakaoLogOut} className={styles.contents__logout}>
-            {/* 구글 아이콘을 사용 */}
             <span className={`material-symbols-outlined ${styles.contents__logout__span}`} >
               logout
             </span>
           </button>
         </CommonTooltip>
-        }
+        } */}
       </div>
       {/* 만약 데이터가 없을 때 */}
       {isLoading ?
