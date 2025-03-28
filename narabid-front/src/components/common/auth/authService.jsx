@@ -33,7 +33,9 @@ export const requestAccessTokens = async (authCode) => {
 
 export const setRefreshTokenToBackend = async (tokenInfo) => {
     try {
-        return await axios.post(`${API_BASE_URL}/api/auth/set-token`, tokenInfo);
+        return await axios.post(`${API_BASE_URL}/api/auth/set-token`, tokenInfo, {
+            withCredentials: true    // 쿠키 포함 허용
+        });
     } catch (error) {
         console.error("❌ 리프레시 토큰 저장 실패:", error);
         return null;
