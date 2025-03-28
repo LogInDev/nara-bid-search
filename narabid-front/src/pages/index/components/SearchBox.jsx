@@ -6,14 +6,28 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { useBidInfo } from '@/store/apiContext';
-import { fetchProductRequests, fetchProKeywordsRequests, fetchBidRequests, fetchBidKeywordsRequests } from '@/pages/index/apis/openAPIRequests';
+import { fetchProductRequests, fetchProKeywordsRequests, fetchBidRequests, fetchBidKeywordsRequests, searchApi } from '@/pages/index/apis/openAPIRequests';
 import CommonTooltip from '@/components/common/tooltip/CommonTooltip';
+import { useLocation, useNavigate } from 'react-router-dom';
+import useIsMounted from '@/hooks/useIsMounted';
 
-function SearchBox({ handleDialog, selectedDetail }) {
+function SearchBox({ handleDialog, selectedDetail, searchParams }) {
     const today = new Date();
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     oneMonthAgo.setDate(oneMonthAgo.getDate() + 1);
+    const navigate = useNavigate();
+    // 카카오 공유 메시지를 통한 검색 API
+    const isMounted = useIsMounted();
+    const location = useLocation(); // 현재 경로 정보 -> '/search' 경로를 통해 오는 경우 첫 로딩시 기본 검색조건 검색 X
+    // searchParams가 존재하면 해당 값을 사용하고, 없으면 기본값 설정
+    const searchApiBidNumber = searchParams?.bidNumber || '';
+    const searchApiBidType = searchParams?.bidType || '';
+    const searchApiCategory = searchParams?.category || '';
+    // 상태 변수 선언
+    const [bidNumber, setBidNumber] = useState(searchApiBidNumber);
+    const [bidType, setBidType] = useState(searchApiBidType);
+    const [category, setCategory] = useState(searchApiCategory);
     // 상태관리 - bidInfo
     const { setBidInfos, BASE_API_URL, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY, setIsLoading, categories, setCategories } = useBidInfo();
     // 상세 검색
@@ -90,21 +104,24 @@ function SearchBox({ handleDialog, selectedDetail }) {
                 return acc;
             }, {}));
             setBidMethodCategory(categories.contractMethods || []);
-            setProSearchTerms(categories.proKeywords || []);
-            setBidSearchTerms(categories.bidKeywords || []);
 
             const fetchAndSearch = async () => {
                 await applyDefault(); // ✅ applyDefault() 완료될 때까지 대기
                 isInitialized.current = true; // ✅ applyDefault() 실행 완료 표시
             };
 
-            fetchAndSearch();
+            if (!location.pathname.startsWith('/search')) {
+                fetchAndSearch();
+
+                setProSearchTerms(categories.proKeywords || []);
+                setBidSearchTerms(categories.bidKeywords || []);
+            }
 
         }
     }, [categories]);
 
     useEffect(() => {
-        if (isInitialized.current && !isSearched.current) {
+        if (!location.pathname.startsWith('/search') && isInitialized.current && !isSearched.current) {
             handleSearch(); // ✅ 한 번만 실행
             isSearched.current = true; // ✅ 이후 실행 방지
         }
@@ -220,6 +237,31 @@ function SearchBox({ handleDialog, selectedDetail }) {
             console.error('기본 검색 조건 조회 실패', error);
         }
     }
+
+    // 카카오 공유 메시지를 통한 검색 API
+    useEffect(() => {
+        const fetchData = async () => {
+            if (searchApiBidNumber || searchApiBidType || searchApiCategory) {
+                try {
+                    const dataReponse = await searchApi(searchApiBidNumber, searchApiBidType, searchApiCategory, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY);
+                    if (isMounted) {
+                        const searchResults = (dataReponse?.data?.response?.body?.items ?? []).map(item => ({
+                            ...item,
+                            type: dataReponse.type
+                        })
+                        );
+                        setBidInfos(searchResults);
+                    }
+                } catch (error) {
+                    if (isMounted) {
+                        console.error('검색 요청 실패', error);
+                    }
+                }
+            }
+        };
+
+        fetchData();
+    }, [searchApiBidNumber, searchApiBidType, searchApiCategory]);
 
     // 서버로 검색 객체 전송
     const handleSearch = async () => {
@@ -373,6 +415,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
             console.error('검색 요청 실패', error);
         } finally {
             setIsLoading(false);
+            if (location.pathname != '/') navigate('/'); // 검색 후 루트 경로로 이동
         }
 
     }
@@ -433,6 +476,7 @@ function SearchBox({ handleDialog, selectedDetail }) {
             console.error('검색 요청 실패', error);
         } finally {
             setIsLoading(false);
+            if (location.pathname != '/') navigate('/'); // 검색 후 루트 경로로 이동
         }
 
     }

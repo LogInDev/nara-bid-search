@@ -115,4 +115,58 @@ export const fetchDetailProductRequests = async (detailProduct, page, size, PROD
     })
 };
 
+// 카카오 공유 메시지를 통한 검색 API
+export const searchApi = async (bidNumber, bidType, category, PRE_API_URL, PRE_API_KEY, BID_API_URL, BID_API_KEY) => {
+    let response; // 응답 결과
+    let type; // 타입 - 1: 사전규격 - 용역 || 2: 사전규격 - 물품 || 3: 입찰공고 - 물품 || 4: 입찰공고 - 용역
+    // 사전규격 검색
+    if (bidType == '사전규격') {
+        // 물품 검색
+        if (category == '물품') {
+            response = await axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoThng`, {
+                params: {
+                    ...requests.bidNumberRequest,
+                    serviceKey: PRE_API_KEY,
+                    bfSpecRgstNo: bidNumber,
+                }
+            });
+            type = 2;
+            return { data: response.data, type }
+        }
+        // 용역 검색
+        response = await axios.get(`${PRE_API_URL}/getPublicPrcureThngInfoServc`, {
+            params: {
+                ...requests.bidNumberRequest,
+                serviceKey: PRE_API_KEY,
+                bfSpecRgstNo: bidNumber,
+            }
+        });
+        type = 1;
+        return { data: response.data, type }
+    }
+    // 입찰공고 검색
+    // 물품 검색
+    if (category == '물품') {
+        response = await axios.get(`${BID_API_URL}/getBidPblancListInfoThng`, {
+            params: {
+                ...requests.bidNumberRequest,
+                serviceKey: BID_API_KEY,
+                bidNtceNo: bidNumber,
+            }
+        });
+        type = 3;
+        return { data: response.data, type }
+    }
+    // 용역 검색
+    response = await axios.get(`${BID_API_URL}/getBidPblancListInfoServc`, {
+        params: {
+            ...requests.bidNumberRequest,
+            serviceKey: BID_API_KEY,
+            bidNtceNo: bidNumber,
+        }
+    });
+    type = 4;
+    return { data: response.data, type }
+}
+
 

@@ -6,6 +6,7 @@ import { ClientSideRowModelModule, CsvExportModule } from "ag-grid-community"; /
 
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+
 import { useBidInfo } from '@/store/apiContext';
 import CustomTooltip from '@/components/common/tooltip/CustomTooltip';
 import Loading from './Loading';
@@ -16,6 +17,7 @@ import { saveAs } from "file-saver";
 import CommonTooltip from '@/components/common/tooltip/CommonTooltip';
 import { logoutFromKakao } from '@/components/common/auth/authService';
 
+import { API_FRONT_BASE_URL, KAKAO_JS_KEY } from '../../../../config';
 
 const MyTable = ({ handleSelectState }) => {
   const gridRef = useRef(null);
@@ -388,51 +390,42 @@ const MyTable = ({ handleSelectState }) => {
   const setShareDatas = () => {
     if (!messageInfos || messageInfos.length === 0) return null;
 
-    const itemsPerPage = 5;
-    const totalPages = Math.ceil(messageInfos.length / itemsPerPage);
-    const pagedInfos = messageInfos.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
-
-    const keys = [
-      { label: "입찰유형", field: "입찰유형" },
-      { label: "공고번호", field: "공고번호" },
-      { label: "기초금액", field: "기초금액" },
-      { label: "공고일", field: "공고일" },
-      { label: "마감일", field: "마감일" },
-      { label: "계약방법", field: "계약방법" },
-      { label: "수요기관", field: "수요기관" },
-    ];
-
-    const listContents = pagedInfos.map((info, idx) => {
-      const description = keys.map(({ label, field }) => {
-        const value = info[field];
-        return `${label}: ${value ?? "-"}`;
-      }).join("\n");
-
+    const listContents = messageInfos.map((info) => {
       const base = {
-        title: info["공고명"] || `공고 ${idx + 1}`,
-        // description,
-        description: info["공고번호"],
+        title: info["공고명"],
+        description: `${info["입찰유형"]} | ${info["구분"]} | ${info["기초금액"]} | ${info["수요기관"]}`,
         imageUrl: "https://via.placeholder.com/1x1", // ✅ 필수
-        // imageUrl: "http://nivusds.iptime.org:9290/nivus.png", // ✅ 필수
         link: {
           webUrl: info["상세페이지"] && info["상세페이지"].trim() !== ""
             ? info["상세페이지"]
-            : "https://www.g2b.go.kr",
+            : `${API_FRONT_BASE_URL}/search?bidNumber=${info["공고번호"]}&bidType=${info["입찰유형"]}&category=${info["구분"]}`,
           mobileWebUrl: info["상세페이지"] && info["상세페이지"].trim() !== ""
             ? info["상세페이지"]
-            : "https://www.g2b.go.kr"
+            : `${API_FRONT_BASE_URL}/search?bidNumber=${info["공고번호"]}&bidType=${info["입찰유형"]}&category=${info["구분"]}`,
         }
       };
 
       return base;
     });
+    // 'list' 형식으로 공유 시 최소 2개의 정보는 보내야 함으로 1개일 경우 2개로 만들어서 보냄.
+    if (listContents.length === 1) {
+      listContents.push({
+        title: "검색페이지로 이동",
+        description: "더 많은 정보를 확인하세요.",
+        imageUrl: "https://via.placeholder.com/1x1",
+        link: {
+          webUrl: API_FRONT_BASE_URL,
+          mobileWebUrl: API_FRONT_BASE_URL,
+        },
+      });
+    }
 
     return {
       objectType: "list",
       headerTitle: `공고 목록`,
       headerLink: {
-        webUrl: "http://nivusds.iptime.org:9290",
-        mobileWebUrl: "http://nivusds.iptime.org:9290"
+        webUrl: `${API_FRONT_BASE_URL}`,
+        mobileWebUrl: `${API_FRONT_BASE_URL}`,
       },
       contents: listContents,
       buttons: [
@@ -444,6 +437,7 @@ const MyTable = ({ handleSelectState }) => {
           }
         }
       ],
+      // 보낸 메시지 내용이 서버단에서 처리가 필요할 경우
       // serverCallbackArgs: {
       //   userId: "user_abc_123",
       //   sharedCount: pagedInfos.length,
@@ -454,7 +448,7 @@ const MyTable = ({ handleSelectState }) => {
 
   const shareToKakao = () => {
     if (window.Kakao && !window.Kakao.isInitialized()) {
-      window.Kakao.init("4da47948fb547638c3df026742185921"); // 본인의 JavaScript 키
+      window.Kakao.init(KAKAO_JS_KEY); // 본인의 JavaScript 키
     }
 
     const template = setShareDatas();
@@ -464,7 +458,7 @@ const MyTable = ({ handleSelectState }) => {
 
   // 메시지 보내기 클릭시 total 전송 개수 체크(7개 제한)
   const checkTotalRows = () => {
-    // 최대 7개까지 메시지 전송 가능
+    // 최대 3개까지 메시지 전송 가능
     if (selectedRows.length > 3) {
       toast.warn('최대 3개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
       return;

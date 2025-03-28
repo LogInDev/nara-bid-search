@@ -19,8 +19,8 @@ function App() {
         theme="light"             // 테마: 'light', 'dark', 'colored' 중 택 1
       />
       <Routes>
+        <Route path='/search' element={<MainPage />}></Route>
         <Route index path="/" element={<MainPage />}></Route>
-        <Route path='/search/:id' element={<MainPage />}></Route>
       </Routes>
     </BrowserRouter>
   )

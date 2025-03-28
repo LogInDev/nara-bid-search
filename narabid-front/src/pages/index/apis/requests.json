@@ -22,5 +22,11 @@
     "numOfRows": "100",
     "type": "json",
     "inqryDiv": "1"
+  },
+  "bidNumberRequest": {
+    "pageNo": "1",
+    "numOfRows": "100",
+    "type": "json",
+    "inqryDiv": "2"
   }
 }

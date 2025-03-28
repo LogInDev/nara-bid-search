@@ -8,6 +8,7 @@ import { MessageProvider } from '@/store/messageContext';
 import styles from '@pages/index/styles/index.module.scss'
 import KakaoAuthHandler from '@/components/common/auth/KakaoAuthHandler';
 import SelectFriends from '@/components/common/message/SelectFriends';
+import { useSearchParams } from 'react-router-dom';
 
 function MainPage() {
     const [open, setOpen] = useState(false);
@@ -16,6 +17,15 @@ function MainPage() {
     const [selectState, setSelectState] = useState(false);
     const [openFriends, setOpenFriends] = useState(false);
     const [friendsInfos, setFriendsInfos] = useState([]);
+
+    // 카카오 공유 메시지 링크 검색 API
+    const [params] = useSearchParams();
+    const bidNumber = params.get('bidNumber');   // 공고번호
+    const bidType = params.get('bidType');       // 입찰유형
+    const category = params.get('category');     // 구분(세부품목)
+    const hasSearchParams = bidNumber && bidType && category;
+
+
 
     // DetailDialog에서 선택한 데이터(예: { code, name })를 받아 SearchBox에 전달
     const handleSelectDetail = (data) => {
@@ -38,7 +48,9 @@ function MainPage() {
                 setOpen(true);
                 setDetailType(param);
             }}
-                selectedDetail={selectedDetail} />
+                selectedDetail={selectedDetail}
+                {...(hasSearchParams ? { searchParams: { bidNumber, bidType, category } } : {})}
+            />
             <br />
             <MessageProvider>
                 <KakaoAuthHandler />
