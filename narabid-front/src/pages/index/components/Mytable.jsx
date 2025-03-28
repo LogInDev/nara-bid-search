@@ -389,11 +389,11 @@ const MyTable = ({ handleSelectState }) => {
 
   const setShareDatas = () => {
     if (!messageInfos || messageInfos.length === 0) return null;
-
+    console.log(API_FRONT_BASE_URL)
     const listContents = messageInfos.map((info) => {
       const base = {
         title: info["공고명"],
-        description: `${info["입찰유형"]} | ${info["구분"]} | ${info["기초금액"]} | ${info["수요기관"]}`,
+        description: `${info["입찰유형"]} | ${info["구분"]} | ${info["기초금액"]} | ${info["계약방법"] || info["수요기관"]}`,
         imageUrl: "https://via.placeholder.com/1x1", // ✅ 필수
         link: {
           webUrl: info["상세페이지"] && info["상세페이지"].trim() !== ""
