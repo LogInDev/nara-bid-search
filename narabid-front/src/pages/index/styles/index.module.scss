@@ -1,6 +1,62 @@
 .container{
-    display:contents;
-    width: 100vw;
+    width: 100%;
     height: 100vw;
+    min-width: 1200px;
+}
+.header {
+    position: relative;
+    width: 30%;
+    color: white;
+    &__img{
+        width: 45px;
+        height: 25px;
+    }
+}
+.twelve h1 {
+  font-size:29px; 
+  font-weight:700;  
+  letter-spacing:1px; 
+  text-transform:uppercase; 
+  width:160px; 
+  text-align:center; 
+//   margin:auto; 
+  white-space:nowrap; 
+  padding-bottom:13px;
+}
+.twelve h1:before {
+    background-color: main.$color-blue-900;
+    content: '';
+    display: block;
+    height: 3px;
+    width: 75px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+.twelve h1:after {
+    background-color: main.$color-blue-900;
+    content: '';
+    display: block;
+    position:absolute; 
+    right:35px; 
+    bottom:-12px;
+    height: 3px;
+    width: 75px;
+    margin-bottom: 0.25em;
 }
 
+.overlay {
+    width: 100%;
+    height: 100%;
+    // background: rgba(main.$color-blue-900, 0.5); // 어두운 네이비 반투명 레이어
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 700;
+    color: main.$color-blue-900;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}

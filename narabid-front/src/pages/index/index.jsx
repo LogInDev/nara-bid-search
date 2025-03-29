@@ -39,10 +39,16 @@ function MainPage() {
         setSelectState(value);
         setOpenFriends(value);
     }
+    const headerImages = new Array(24).fill("/gray-nivus.png"); // 10개 복사
 
     return (
-        <div>
-            {/* <h1>나라장터 검색 시스템</h1> */}
+        <div className={styles.container}>
+            <div className={styles.header}>
+                <div className={styles.twelve}>
+                    {/* <img className={styles.header__img} src="/nivus.png" alt="nivus" /> */}
+                    <h1 className={styles.title}>&nbsp;&nbsp;&nbsp;&nbsp;입찰정보 통합검색</h1>
+                </div>
+            </div>
             <br />
             <SearchBox handleDialog={(param) => {
                 setOpen(true);

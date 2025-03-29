@@ -421,7 +421,7 @@ const MyTable = ({ handleSelectState }) => {
     }
 
     return {
-      objectType: "list",
+      objectType: "text",
       headerTitle: `공고 목록`,
       headerLink: {
         webUrl: `${API_FRONT_BASE_URL}`,
@@ -445,22 +445,63 @@ const MyTable = ({ handleSelectState }) => {
       // }
     };
   };
+  // 메시지 template 세팅
+  const setSendDatas = () => {
+    const keys = ["구분", "입찰유형", "공고명", "공고번호", "기초금액", "공고일", "마감일", "계약방법", "수요기관"];
+    const content = messageInfos
+      .map(info =>
+        keys
+          .filter(key => info[key] && info[key].toString().trim() !== "")
+          .map(key => `${key}: ${info[key]}`)
+          .join("\n")
+      )
+      .join("\n\n");
+    const buttonContents = messageInfos
+      .filter(info => info["상세페이지"] && info["상세페이지"].toString().trim() !== "")
+      .map(info => ({
+        title: info["공고명"],
+        link: info["상세페이지"]
+      }));
+
+    const template = {
+      objectType: "text",
+      text: content,
+      buttonTitle: "나라장터 바로가기",
+      link: {
+        webUrl: "https://www.g2b.go.kr",
+        mobileWebUrl: "https://www.g2b.go.kr",
+      },
+      installTalk: true,
+      // ...(buttonContents && {
+      //   buttons: buttonContents.map(item => ({
+      //     title: item.title,
+      //     link: { web_url: item.link, mobile_web_url: item.link },
+      //   }))
+      // })
+      buttons: buttonContents?.slice(0, 2).map(item => ({
+        title: item.title,
+        link: { webUrl: item.link, mobileWebUrl: item.link },
+      }))
+    };
+    return template;
+  }
 
   const shareToKakao = () => {
     if (window.Kakao && !window.Kakao.isInitialized()) {
       window.Kakao.init(KAKAO_JS_KEY); // 본인의 JavaScript 키
     }
 
-    const template = setShareDatas();
+    // const template = setShareDatas();
+    const template = setSendDatas();
     if (!template) console.log('공유할 공고가 없습니다.')
     window.Kakao.Share.sendDefault(template);
   };
 
   // 메시지 보내기 클릭시 total 전송 개수 체크(7개 제한)
   const checkTotalRows = () => {
-    // 최대 3개까지 메시지 전송 가능
-    if (selectedRows.length > 3) {
-      toast.warn('최대 3개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
+    // 최대 6개까지 메시지 전송 가능
+    if (selectedRows.length > 6) {
+      toast.warn('최대 6개까지 선택할 수 있습니다. 추가 선택을 원하시면 기존 선택을 해제하세요.');
       return;
     }
     if (selectedRows.length < 1) {
@@ -512,23 +553,25 @@ const MyTable = ({ handleSelectState }) => {
         (rowData.length == 0 ? (
           <div className={styles.noData}>조회 가능한 데이터가 없습니다.</div>
         ) : (
-          <AgGridReact
-            ref={gridRef}
-            columnDefs={columnDefs}
-            rowData={rowData || []}
-            rowSelection="multiple" // 다중 선택
-            rowMultiSelectWithClick={true}
-            // onRowSelected={onRowSelected} // 개별 행 선택 이벤트 핸들러
-            onSelectionChanged={onSelectionChanged} // 선택 변경 이벤트 핸들러
-            enableBrowserTooltips={false} // ✅ 툴팁 활성화
-            tooltipShowDelay={0} // ✅ 툴팁 즉시 표시
-            gridOptions={gridOptions}
-            defaultColDef={defaultColDef}
-            getRowHeight={getRowHeight}
-            enableCellTextSelection={true}  // ✅ 텍스트 드래그 활성화
-            suppressRowClickSelection={false}  // ✅ 클릭 시 행 선택 방지
-            paginationPageSizeSelector={[5, 10, 30, 50]} // 선택 가능한 페이지 크기
-          />
+          <div className="ag-theme-alpine" style={{ minWidth: '1200px' }}>
+            <AgGridReact
+              ref={gridRef}
+              columnDefs={columnDefs}
+              rowData={rowData || []}
+              rowSelection="multiple" // 다중 선택
+              rowMultiSelectWithClick={true}
+              // onRowSelected={onRowSelected} // 개별 행 선택 이벤트 핸들러
+              onSelectionChanged={onSelectionChanged} // 선택 변경 이벤트 핸들러
+              enableBrowserTooltips={false} // ✅ 툴팁 활성화
+              tooltipShowDelay={0} // ✅ 툴팁 즉시 표시
+              gridOptions={gridOptions}
+              defaultColDef={defaultColDef}
+              getRowHeight={getRowHeight}
+              enableCellTextSelection={true}  // ✅ 텍스트 드래그 활성화
+              suppressRowClickSelection={false}  // ✅ 클릭 시 행 선택 방지
+              paginationPageSizeSelector={[5, 10, 30, 50]} // 선택 가능한 페이지 크기
+            />
+          </div>
         ))}
     </div>
   );
