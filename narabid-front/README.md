@@ -1,6 +1,6 @@
-# 개발 환경
+## ⚙️ 설치 및 실행 방법
 
-1. 프로젝트 환경설정(vite를 활용한 React 설치) : `npm create vite@latest`
+1. 프로젝트 환경설정(vite를 활용한 React 설치) : `npm create vite@4.5.0`
 
 2. API 통신을 위한 라이브러리 Axios 설치 : `npm install axios`
 
