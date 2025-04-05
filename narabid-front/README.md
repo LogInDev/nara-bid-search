@@ -1,4 +1,4 @@
-## ⚙️ 설치 및 실행 방법
+## ⚙️ 설치
 
 1. 프로젝트 환경설정(vite를 활용한 React 설치) : `npm create vite@4.5.0`
 
@@ -20,3 +20,13 @@
     - 엑셀 내 하이퍼링크 색상 적용을 위한 패키지 설치 : `npm install exceljs file-saver`
 
 9. Kakao 공유 기능을 위한 Kakao SDK 패키지 설치 : `npm install @kakao/kakao-js-sdk`
+
+## ▶️ 실행 방법
+
+```bash
+# 패키지 설치
+npm install
+
+# 개발 서버 실행
+npm run dev
+```
